@@ -1,0 +1,16 @@
+{
+	"ImportPath": "CenturyLinkLabs/zodiac",
+	"GoVersion": "go1.4.2",
+	"Deps": [
+		{
+			"ImportPath": "github.com/Sirupsen/logrus",
+			"Comment": "v0.7.3-4-gaaf92c9",
+			"Rev": "aaf92c95712104318fc35409745f1533aa5ff327"
+		},
+		{
+			"ImportPath": "github.com/codegangsta/cli",
+			"Comment": "1.2.0-106-ga889873",
+			"Rev": "a889873af50a499d060097216dcdbcc26ed09e7c"
+		}
+	]
+}
