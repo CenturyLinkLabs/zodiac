@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
+	"github.com/CenturyLinkLabs/zodiac/actions"
+	"github.com/CenturyLinkLabs/zodiac/discovery"
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 )
@@ -12,7 +15,15 @@ const version = "0.0.1"
 var commands []cli.Command
 
 func init() {
-	commands = []cli.Command{}
+	log.SetLevel(log.WarnLevel)
+
+	commands = []cli.Command{
+		{
+			Name:   "verify",
+			Usage:  "Verify the known nodes",
+			Action: verifyAction,
+		},
+	}
 }
 
 func main() {
@@ -39,4 +50,14 @@ func initializeCLI(c *cli.Context) error {
 	}
 
 	return nil
+}
+
+func verifyAction(c *cli.Context) {
+	cluster := discovery.HardcodedCluster{{URL: "tcp://10.134.246.158:2375"}}
+	o, err := actions.Verify(cluster)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(o.ToPrettyOutput())
 }

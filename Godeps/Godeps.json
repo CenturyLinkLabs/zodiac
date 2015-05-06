@@ -1,16 +1,29 @@
 {
-	"ImportPath": "CenturyLinkLabs/zodiac",
+	"ImportPath": "github.com/CenturyLinkLabs/zodiac",
 	"GoVersion": "go1.4.2",
 	"Deps": [
+		{
+			"ImportPath": "github.com/CenturyLinkLabs/prettycli",
+			"Rev": "552338ea4abe1948523378f4fd36209298081e87"
+		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.7.3-4-gaaf92c9",
 			"Rev": "aaf92c95712104318fc35409745f1533aa5ff327"
 		},
 		{
+			"ImportPath": "github.com/blang/semver",
+			"Comment": "v3.0.0",
+			"Rev": "2f3112b6f8f18f9df8743cc75ed51da08094ef6a"
+		},
+		{
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-106-ga889873",
 			"Rev": "a889873af50a499d060097216dcdbcc26ed09e7c"
+		},
+		{
+			"ImportPath": "github.com/samalba/dockerclient",
+			"Rev": "9f98218fd08bc69faf3a8ebc2d840abcacc02e85"
 		}
 	]
 }
