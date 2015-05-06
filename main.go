@@ -12,7 +12,10 @@ import (
 
 const version = "0.0.1"
 
-var commands []cli.Command
+var (
+	commands []cli.Command
+	cluster  = discovery.HardcodedCluster{{URL: "tcp://10.134.246.158:2375"}}
+)
 
 func init() {
 	log.SetLevel(log.WarnLevel)
@@ -22,6 +25,11 @@ func init() {
 			Name:   "verify",
 			Usage:  "Verify the known nodes",
 			Action: verifyAction,
+		},
+		{
+			Name:   "deploy",
+			Usage:  "TODO: usage text here. Hopefully I don't forget it.",
+			Action: deployAction,
 		},
 	}
 }
@@ -53,8 +61,16 @@ func initializeCLI(c *cli.Context) error {
 }
 
 func verifyAction(c *cli.Context) {
-	cluster := discovery.HardcodedCluster{{URL: "tcp://10.134.246.158:2375"}}
 	o, err := actions.Verify(cluster)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(o.ToPrettyOutput())
+}
+
+func deployAction(c *cli.Context) {
+	o, err := actions.Deploy(cluster)
 	if err != nil {
 		log.Fatal(err)
 	}
