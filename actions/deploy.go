@@ -10,12 +10,14 @@ import (
 	"os"
 	"strings"
 
+	"github.com/CenturyLinkLabs/docker-reg-client/registry"
 	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/discovery"
 	log "github.com/Sirupsen/logrus"
-	"github.com/k0kubun/pp"
 	"github.com/samalba/dockerclient"
 )
+
+var RegistryClient = registry.NewClient()
 
 type AttemptedContainer struct {
 	Name          string
@@ -23,8 +25,10 @@ type AttemptedContainer struct {
 	Config        dockerclient.ContainerConfig
 }
 
+type DeploymentManifest map[string]string
+
 func Deploy(c discovery.Cluster) (prettycli.Output, error) {
-	attemptedContainers := make([]AttemptedContainer, 0)
+	attemptedContainers := make([]*AttemptedContainer, 0)
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bs, _ := ioutil.ReadAll(r.Body)
@@ -35,8 +39,13 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 		} else if r.URL.Path == "/v1.15/containers/beefbeef/start" {
 			w.WriteHeader(http.StatusNoContent)
 		} else if strings.HasPrefix(r.URL.String(), "/v1.15/containers/create") {
-			name := r.URL.Query()["name"][0]
-			attemptedContainers = append(attemptedContainers, AttemptedContainer{
+			nameParam := r.URL.Query()["name"]
+			if len(nameParam) != 1 {
+				log.Fatal("There was a problem with the container creation request")
+			}
+
+			name := nameParam[0]
+			attemptedContainers = append(attemptedContainers, &AttemptedContainer{
 				CreateOptions: bs,
 				Name:          name,
 			})
@@ -69,7 +78,9 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 
 	for _, ac := range attemptedContainers {
 		var cc dockerclient.ContainerConfig
-		_ = json.Unmarshal(ac.CreateOptions, &cc)
+		if err := json.Unmarshal(ac.CreateOptions, &cc); err != nil {
+			log.Fatalf("Error unmarshalling request JSON for '%s': %s", ac.Name, err.Error())
+		}
 		ac.Config = cc
 	}
 
@@ -77,23 +88,66 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	pp.Print(attemptedContainers)
+
+	manifest := make(DeploymentManifest)
+	for _, ac := range attemptedContainers {
+		sha, err := resolveImage(ac.Config.Image)
+		if err != nil {
+			log.Fatalf("the image '%s' couldn't be found: %s", ac.Config.Image, err.Error())
+		}
+		manifest[ac.Name] = sha
+	}
+	manifestJSON, err := json.Marshal(manifest)
+	if err != nil {
+		log.Fatal("there was a problem building the deployment manafest: ", err)
+	}
 
 	for _, ac := range attemptedContainers {
+		// TODO Why? Change the way the Config is instantiated?
 		if ac.Config.Labels == nil {
 			ac.Config.Labels = make(map[string]string)
 		}
-		ac.Config.Labels["zodiac"] = "strike"
+		ac.Config.Labels["zodiacManifest"] = string(manifestJSON)
 		id, err := client.CreateContainer(&ac.Config, ac.Name)
 		if err != nil {
-			log.Fatal("problem creating", err)
+			log.Fatal("problem creating: ", err)
 		}
 		log.Infof("%s created as %s", ac.Name, id)
 		if err := client.StartContainer(id, &dockerclient.HostConfig{}); err != nil {
-			log.Fatal("problem starting", err)
+			log.Fatal("problem starting: ", err)
 		}
-		log.Infof("%s started")
+		log.Infof("started container '%s'", ac.Name)
 	}
 
-	return prettycli.PlainOutput{"Would deploy..."}, nil
+	return prettycli.PlainOutput{"TODO: something something something success."}, nil
+}
+
+func resolveImage(s string) (string, error) {
+	image := s
+	tag := "latest"
+	if strings.ContainsRune(s, ':') {
+		elements := strings.Split(s, ":")
+		if len(elements) != 2 {
+			log.Fatalf("can't find image and tag name from '%s'", s)
+		}
+		image = elements[0]
+		tag = elements[1]
+	}
+
+	auth, err := RegistryClient.Hub.GetReadToken(image)
+	if err != nil {
+		return "", err
+	}
+
+	tags, err := RegistryClient.Repository.ListTags(image, auth)
+	if err != nil {
+		log.Fatalf("the image '%s' could not be found: %s", image, err.Error())
+	}
+
+	sha := tags[tag]
+	if sha == "" {
+		log.Fatalf("the tag '%s' couldn't be found for image '%s'", tag, image)
+	}
+
+	return sha, nil
 }
