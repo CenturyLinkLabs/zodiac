@@ -30,10 +30,14 @@ type DeploymentManifest map[string]string
 func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 	attemptedContainers := make([]*AttemptedContainer, 0)
 
+	//////////////////
+	// WAIT FOR COMPOSE TO DEPLOY
+	//////////////////
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bs, _ := ioutil.ReadAll(r.Body)
 		log.Infof("Got: %s %s, Body: %s", r.Method, r.URL.String(), string(bs))
 
+		// TODO Audit that URL and meth are specific enough
 		if r.URL.Path == "/v1.15/containers/beefbeef/json" {
 			fmt.Fprintf(w, `{"Id": "beefbeef", "Name": "/hangry_welch"}`)
 		} else if r.URL.Path == "/v1.15/containers/beefbeef/start" {
@@ -51,19 +55,13 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 			})
 
 			fmt.Fprintf(w, `{ "Id":"beefbeef", "Warnings":[] }`)
+		} else if r.Method == "GET" && r.URL.Path == "/v1.15/containers/json" {
+			// TODO you've introduced a bug where it'll try and create containers
+			// overtop of other identically-named containers because it never knows
+			// they are running. Good job.
+			fmt.Fprintf(w, `[]`)
 		} else {
-			r.URL.Host = "10.134.246.158:2375"
-			r.URL.Scheme = "http"
-			log.Infof("Proxied %s", r.URL.String())
-			req, err := http.NewRequest(r.Method, r.URL.String(), nil)
-			c := http.Client{}
-			resp, err := c.Do(req)
-			if err != nil {
-				log.Fatal(err)
-			}
-
-			respBody, _ := ioutil.ReadAll(resp.Body)
-			fmt.Fprintf(w, string(respBody))
+			log.Fatalf("got unhandled request '%s'", r.URL.String())
 		}
 	})
 
@@ -72,10 +70,13 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 	listener, _ := net.ListenTCP("tcp", laddr)
 	go http.Serve(listener, handler)
 	defer listener.Close()
-
 	reader := bufio.NewReader(os.Stdin)
 	_, _ = reader.ReadString('\n')
 
+	//////////////////
+	// YOU NOW HAVE THE CONTAINERS SAVED AND COMPOSE IS HAPPY
+	//////////////////
+	fmt.Println("Starting containers...")
 	for _, ac := range attemptedContainers {
 		var cc dockerclient.ContainerConfig
 		if err := json.Unmarshal(ac.CreateOptions, &cc); err != nil {
@@ -83,12 +84,6 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 		}
 		ac.Config = cc
 	}
-
-	client, err := dockerclient.NewDockerClient("tcp://10.134.246.158:2375", nil)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	manifest := make(DeploymentManifest)
 	for _, ac := range attemptedContainers {
 		sha, err := resolveImage(ac.Config.Image)
@@ -99,24 +94,32 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 	}
 	manifestJSON, err := json.Marshal(manifest)
 	if err != nil {
-		log.Fatal("there was a problem building the deployment manafest: ", err)
+		log.Fatal("there was a problem building the deployment manifest: ", err)
 	}
 
-	for _, ac := range attemptedContainers {
-		// TODO Why? Change the way the Config is instantiated?
-		if ac.Config.Labels == nil {
-			ac.Config.Labels = make(map[string]string)
-		}
-		ac.Config.Labels["zodiacManifest"] = string(manifestJSON)
-		id, err := client.CreateContainer(&ac.Config, ac.Name)
+	for _, node := range c.Endpoints() {
+		client, err := dockerclient.NewDockerClient(node.URL, nil)
 		if err != nil {
-			log.Fatal("problem creating: ", err)
+			log.Fatal(err)
 		}
-		log.Infof("%s created as %s", ac.Name, id)
-		if err := client.StartContainer(id, &dockerclient.HostConfig{}); err != nil {
-			log.Fatal("problem starting: ", err)
+		log.Infof("creating containers on endpoints '%s'", node.URL)
+
+		for _, ac := range attemptedContainers {
+			// TODO Why? Change the way the Config is instantiated?
+			if ac.Config.Labels == nil {
+				ac.Config.Labels = make(map[string]string)
+			}
+			ac.Config.Labels["zodiacManifest"] = string(manifestJSON)
+			id, err := client.CreateContainer(&ac.Config, ac.Name)
+			if err != nil {
+				log.Fatal("problem creating: ", err)
+			}
+			log.Infof("%s created as %s", ac.Name, id)
+			if err := client.StartContainer(id, &dockerclient.HostConfig{}); err != nil {
+				log.Fatal("problem starting: ", err)
+			}
+			log.Infof("started container '%s'", ac.Name)
 		}
-		log.Infof("started container '%s'", ac.Name)
 	}
 
 	return prettycli.PlainOutput{"TODO: something something something success."}, nil
