@@ -19,12 +19,15 @@ import (
 
 var RegistryClient = registry.NewClient()
 
+const SavedDeploymentCount = 5
+
 type AttemptedContainer struct {
 	Name          string
 	CreateOptions []byte
 	Config        dockerclient.ContainerConfig
 }
 
+type DeploymentManifests []DeploymentManifest
 type DeploymentManifest map[string]string
 
 func Deploy(c discovery.Cluster) (prettycli.Output, error) {
@@ -74,42 +77,76 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 	_, _ = reader.ReadString('\n')
 
 	//////////////////
+	// FETCHING OLD DEPLOYMENT
+	//////////////////
+
+	var oldManifests DeploymentManifests
+	for _, ep := range c.Endpoints() {
+		log.Infof("checking deployments for '%s'", ep.URL)
+		client, err := dockerclient.NewDockerClient(ep.URL, nil)
+		if err != nil {
+			log.Fatal("failed to create docker client: ", err)
+		}
+		cts, err := client.ListContainers(true, false, "")
+		if err != nil {
+			log.Fatal("unable to list containers: ", err)
+		}
+
+		for _, ct := range cts {
+			if err := json.Unmarshal([]byte(ct.Labels["zodiacManifest"]), &oldManifests); err != nil {
+				log.Fatal("unable to unmarshal manifest: ", err)
+			}
+			log.Infof("removing container '%s'", ct.Id)
+			// TODO: should we be removing the associated volumes?
+			if err := client.RemoveContainer(ct.Id, true, false); err != nil {
+				log.Fatal("unable to destroy container: ", err)
+			}
+		}
+	}
+
+	//////////////////
 	// YOU NOW HAVE THE CONTAINERS SAVED AND COMPOSE IS HAPPY
 	//////////////////
+
 	fmt.Println("Starting containers...")
 	for _, ac := range attemptedContainers {
 		var cc dockerclient.ContainerConfig
 		if err := json.Unmarshal(ac.CreateOptions, &cc); err != nil {
-			log.Fatalf("Error unmarshalling request JSON for '%s': %s", ac.Name, err.Error())
+			log.Fatalf("error unmarshalling request JSON for '%s': %s", ac.Name, err.Error())
 		}
 		ac.Config = cc
 	}
-	manifest := make(DeploymentManifest)
+	currentManifest := make(DeploymentManifest)
 	for _, ac := range attemptedContainers {
 		sha, err := resolveImage(ac.Config.Image)
 		if err != nil {
 			log.Fatalf("the image '%s' couldn't be found: %s", ac.Config.Image, err.Error())
 		}
-		manifest[ac.Name] = sha
+		currentManifest[ac.Name] = sha
 	}
-	manifestJSON, err := json.Marshal(manifest)
+	oldDeploymentCount := len(oldManifests)
+	if oldDeploymentCount >= SavedDeploymentCount {
+		oldManifests = oldManifests[(oldDeploymentCount - SavedDeploymentCount + 1):]
+	}
+	finalManifest := append(oldManifests, currentManifest)
+	finalManifestJSON, err := json.Marshal(finalManifest)
 	if err != nil {
 		log.Fatal("there was a problem building the deployment manifest: ", err)
 	}
 
-	for _, node := range c.Endpoints() {
-		client, err := dockerclient.NewDockerClient(node.URL, nil)
+	for _, ep := range c.Endpoints() {
+		client, err := dockerclient.NewDockerClient(ep.URL, nil)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Infof("creating containers on endpoints '%s'", node.URL)
+		log.Infof("creating containers on endpoints '%s'", ep.URL)
 
 		for _, ac := range attemptedContainers {
 			// TODO Why? Change the way the Config is instantiated?
 			if ac.Config.Labels == nil {
 				ac.Config.Labels = make(map[string]string)
 			}
-			ac.Config.Labels["zodiacManifest"] = string(manifestJSON)
+			ac.Config.Labels["zodiacManifest"] = string(finalManifestJSON)
 			id, err := client.CreateContainer(&ac.Config, ac.Name)
 			if err != nil {
 				log.Fatal("problem creating: ", err)
