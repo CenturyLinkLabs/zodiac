@@ -73,6 +73,7 @@ func Deploy(c discovery.Cluster, args []string) (prettycli.Output, error) {
 	listener, _ := net.ListenTCP("tcp", laddr)
 	go http.Serve(listener, handler)
 
+	log.Warn("running docker-compose")
 	combinedArgs := append([]string{"up", "-d"}, args...)
 	cmd := exec.Command("docker-compose", combinedArgs...)
 	cmd.Env = []string{"DOCKER_HOST=localhost:31981"}
@@ -108,7 +109,7 @@ func Deploy(c discovery.Cluster, args []string) (prettycli.Output, error) {
 	// YOU NOW HAVE THE CONTAINERS SAVED AND COMPOSE IS HAPPY
 	//////////////////
 
-	fmt.Println("Starting containers...")
+	log.Warn("Starting containers...")
 	for _, ac := range attemptedContainers {
 		var cc dockerclient.ContainerConfig
 		if err := json.Unmarshal(ac.CreateOptions, &cc); err != nil {
@@ -143,7 +144,7 @@ func Deploy(c discovery.Cluster, args []string) (prettycli.Output, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Infof("creating containers on endpoints '%s'", ep.URL)
+		log.Warnf("creating containers on endpoint '%s'", ep.URL)
 
 		for _, ac := range attemptedContainers {
 			// TODO Why? Change the way the Config is instantiated?
@@ -159,7 +160,7 @@ func Deploy(c discovery.Cluster, args []string) (prettycli.Output, error) {
 			if err := client.StartContainer(id, &dockerclient.HostConfig{}); err != nil {
 				log.Fatal("problem starting: ", err)
 			}
-			log.Infof("started container '%s'", ac.Name)
+			log.Warnf("started container '%s'", ac.Name)
 		}
 	}
 
