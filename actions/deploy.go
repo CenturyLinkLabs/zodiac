@@ -1,13 +1,13 @@
 package actions
 
 import (
-	"bufio"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"net/http"
-	"os"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -28,7 +28,7 @@ type AttemptedContainer struct {
 	Config        dockerclient.ContainerConfig
 }
 
-func Deploy(c discovery.Cluster) (prettycli.Output, error) {
+func Deploy(c discovery.Cluster, args []string) (prettycli.Output, error) {
 	attemptedContainers := make([]*AttemptedContainer, 0)
 
 	//////////////////
@@ -66,13 +66,30 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 		}
 	})
 
-	fmt.Println("So uhhhh, press any key when you're deployed... Or Ctrl-C if you want to abort...")
+	//////////////////
+	// RUNNING SERVER, RUNNING COMPOSE, KILLING SERVER
+	//////////////////
 	laddr, _ := net.ResolveTCPAddr("tcp", "localhost:31981")
 	listener, _ := net.ListenTCP("tcp", laddr)
 	go http.Serve(listener, handler)
-	defer listener.Close()
-	reader := bufio.NewReader(os.Stdin)
-	_, _ = reader.ReadString('\n')
+
+	combinedArgs := append([]string{"up", "-d"}, args...)
+	cmd := exec.Command("docker-compose", combinedArgs...)
+	cmd.Env = []string{"DOCKER_HOST=localhost:31981"}
+	var out bytes.Buffer
+	var errOut bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errOut
+	err := cmd.Run()
+	log.Info("docker-compose stdout: ", out.String())
+	if err != nil {
+		log.Info("docker-compose stderr: ", errOut.String())
+		log.Fatal(err)
+	}
+
+	if err := listener.Close(); err != nil {
+		log.Fatal("error stopping proxy server: ", err)
+	}
 
 	//////////////////
 	// FETCHING OLD DEPLOYMENT

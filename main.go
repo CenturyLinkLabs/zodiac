@@ -80,7 +80,7 @@ func verifyAction(c *cli.Context) {
 }
 
 func deployAction(c *cli.Context) {
-	o, err := actions.Deploy(cluster)
+	o, err := actions.Deploy(cluster, c.Args())
 	if err != nil {
 		log.Fatal(err)
 	}
