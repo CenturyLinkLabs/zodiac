@@ -1,4 +1,0 @@
-web:
-  image: hello-world
-db:
-  image: redis
