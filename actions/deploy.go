@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/CenturyLinkLabs/docker-reg-client/registry"
 	"github.com/CenturyLinkLabs/prettycli"
@@ -26,9 +27,6 @@ type AttemptedContainer struct {
 	CreateOptions []byte
 	Config        dockerclient.ContainerConfig
 }
-
-type DeploymentManifests []DeploymentManifest
-type DeploymentManifest map[string]string
 
 func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 	attemptedContainers := make([]*AttemptedContainer, 0)
@@ -80,28 +78,13 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 	// FETCHING OLD DEPLOYMENT
 	//////////////////
 
-	var oldManifests DeploymentManifests
-	for _, ep := range c.Endpoints() {
-		log.Infof("checking deployments for '%s'", ep.URL)
-		client, err := dockerclient.NewDockerClient(ep.URL, nil)
-		if err != nil {
-			log.Fatal("failed to create docker client: ", err)
-		}
-		cts, err := client.ListContainers(true, false, "")
-		if err != nil {
-			log.Fatal("unable to list containers: ", err)
-		}
+	oldManifests, err := manifestsFromCluster(c)
+	if err != nil {
+		log.Fatal("unable to retrieve manifests from cluster: ", err)
+	}
 
-		for _, ct := range cts {
-			if err := json.Unmarshal([]byte(ct.Labels["zodiacManifest"]), &oldManifests); err != nil {
-				log.Fatal("unable to unmarshal manifest: ", err)
-			}
-			log.Infof("removing container '%s'", ct.Id)
-			// TODO: should we be removing the associated volumes?
-			if err := client.RemoveContainer(ct.Id, true, false); err != nil {
-				log.Fatal("unable to destroy container: ", err)
-			}
-		}
+	if err := removeContainers(c); err != nil {
+		log.Fatal("unable to remove containers: ", err)
 	}
 
 	//////////////////
@@ -116,13 +99,14 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 		}
 		ac.Config = cc
 	}
-	currentManifest := make(DeploymentManifest)
+	currentManifest := NewDeploymentManifest()
+	currentManifest.Time = time.Now().String()
 	for _, ac := range attemptedContainers {
 		sha, err := resolveImage(ac.Config.Image)
 		if err != nil {
 			log.Fatalf("the image '%s' couldn't be found: %s", ac.Config.Image, err.Error())
 		}
-		currentManifest[ac.Name] = sha
+		currentManifest.Services[ac.Name] = sha
 	}
 	oldDeploymentCount := len(oldManifests)
 	if oldDeploymentCount >= SavedDeploymentCount {

@@ -31,6 +31,11 @@ func init() {
 			Usage:  "TODO: usage text here. Hopefully I don't forget it.",
 			Action: deployAction,
 		},
+		{
+			Name:   "ls",
+			Usage:  "TODO: usage text here. Hopefully I don't forget it.",
+			Action: listAction,
+		},
 	}
 }
 
@@ -71,6 +76,15 @@ func verifyAction(c *cli.Context) {
 
 func deployAction(c *cli.Context) {
 	o, err := actions.Deploy(cluster)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(o.ToPrettyOutput())
+}
+
+func listAction(c *cli.Context) {
+	o, err := actions.List(cluster)
 	if err != nil {
 		log.Fatal(err)
 	}
