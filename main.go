@@ -36,6 +36,11 @@ func init() {
 			Usage:  "TODO: usage text here. Hopefully I don't forget it.",
 			Action: listAction,
 		},
+		{
+			Name:   "rollback",
+			Usage:  "TODO: usage text here. Hopefully I don't forget it.",
+			Action: rollbackAction,
+		},
 	}
 }
 
@@ -85,6 +90,15 @@ func deployAction(c *cli.Context) {
 
 func listAction(c *cli.Context) {
 	o, err := actions.List(cluster)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(o.ToPrettyOutput())
+}
+
+func rollbackAction(c *cli.Context) {
+	o, err := actions.Rollback(cluster)
 	if err != nil {
 		log.Fatal(err)
 	}

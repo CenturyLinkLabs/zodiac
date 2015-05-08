@@ -83,7 +83,7 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 		log.Fatal("unable to retrieve manifests from cluster: ", err)
 	}
 
-	if err := removeContainers(c); err != nil {
+	if err := removeContainersForCluster(c); err != nil {
 		log.Fatal("unable to remove containers: ", err)
 	}
 
@@ -100,20 +100,23 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 		ac.Config = cc
 	}
 	currentManifest := NewDeploymentManifest()
-	currentManifest.Time = time.Now().String()
+	currentManifest.Time = time.Now().Format("Jan 2 15:04 MST 2006")
 	for _, ac := range attemptedContainers {
 		sha, err := resolveImage(ac.Config.Image)
 		if err != nil {
 			log.Fatalf("the image '%s' couldn't be found: %s", ac.Config.Image, err.Error())
 		}
-		currentManifest.Services[ac.Name] = sha
+		currentManifest.Services[ac.Name] = &DeployedService{
+			SHA:             sha,
+			ContainerConfig: ac.Config,
+		}
 	}
 	oldDeploymentCount := len(oldManifests)
 	if oldDeploymentCount >= SavedDeploymentCount {
 		oldManifests = oldManifests[(oldDeploymentCount - SavedDeploymentCount + 1):]
 	}
 	finalManifest := append(oldManifests, currentManifest)
-	finalManifestJSON, err := json.Marshal(finalManifest)
+	finalManifestsJSON, err := json.Marshal(finalManifest)
 	if err != nil {
 		log.Fatal("there was a problem building the deployment manifest: ", err)
 	}
@@ -130,7 +133,7 @@ func Deploy(c discovery.Cluster) (prettycli.Output, error) {
 			if ac.Config.Labels == nil {
 				ac.Config.Labels = make(map[string]string)
 			}
-			ac.Config.Labels["zodiacManifest"] = string(finalManifestJSON)
+			ac.Config.Labels["zodiacManifest"] = string(finalManifestsJSON)
 			id, err := client.CreateContainer(&ac.Config, ac.Name)
 			if err != nil {
 				log.Fatal("problem creating: ", err)

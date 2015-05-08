@@ -10,13 +10,18 @@ import (
 
 type DeploymentManifests []DeploymentManifest
 type DeploymentManifest struct {
-	Services map[string]string
+	Services map[string]*DeployedService
 	Time     string
+}
+
+type DeployedService struct {
+	SHA             string
+	ContainerConfig dockerclient.ContainerConfig
 }
 
 func NewDeploymentManifest() DeploymentManifest {
 	return DeploymentManifest{
-		Services: make(map[string]string),
+		Services: make(map[string]*DeployedService),
 	}
 }
 
@@ -42,7 +47,7 @@ func manifestsFromCluster(c discovery.Cluster) (DeploymentManifests, error) {
 	return oldManifests, nil
 }
 
-func removeContainers(c discovery.Cluster) error {
+func removeContainersForCluster(c discovery.Cluster) error {
 	for _, ep := range c.Endpoints() {
 		log.Infof("checking deployments for '%s'", ep.URL)
 		client, err := dockerclient.NewDockerClient(ep.URL, nil)
