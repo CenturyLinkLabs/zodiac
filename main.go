@@ -12,6 +12,7 @@ const version = "0.0.1"
 var commands []cli.Command
 
 func init() {
+	log.SetLevel(log.WarnLevel)
 	commands = []cli.Command{}
 }
 
