@@ -1,16 +1,50 @@
 {
-	"ImportPath": "CenturyLinkLabs/zodiac",
+	"ImportPath": "github.com/CenturyLinkLabs/zodiac",
 	"GoVersion": "go1.4.2",
 	"Deps": [
+		{
+			"ImportPath": "github.com/CenturyLinkLabs/clitest",
+			"Rev": "e0eb86230ad5a87080f1dbd6bb5c7f055c0f4c21"
+		},
+		{
+			"ImportPath": "github.com/CenturyLinkLabs/prettycli",
+			"Rev": "552338ea4abe1948523378f4fd36209298081e87"
+		},
 		{
 			"ImportPath": "github.com/Sirupsen/logrus",
 			"Comment": "v0.7.3-4-gaaf92c9",
 			"Rev": "aaf92c95712104318fc35409745f1533aa5ff327"
 		},
 		{
+			"ImportPath": "github.com/blang/semver",
+			"Comment": "v3.0.0",
+			"Rev": "2f3112b6f8f18f9df8743cc75ed51da08094ef6a"
+		},
+		{
 			"ImportPath": "github.com/codegangsta/cli",
 			"Comment": "1.2.0-106-ga889873",
 			"Rev": "a889873af50a499d060097216dcdbcc26ed09e7c"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/units",
+			"Comment": "v1.4.1-3382-gd4eba30",
+			"Rev": "d4eba300657cc60ca03fe774bb42ad6b6f9eca54"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Rev": "94903de8c98a68d8b4483c529b26a5d146e386a2"
+		},
+		{
+			"ImportPath": "github.com/samalba/dockerclient",
+			"Rev": "7f6065748bab373bb99bb0cf5ce343c3b1393491"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "5ab65693f48b284b3f7a83114dd7b166b45f0193"
 		}
 	]
 }
