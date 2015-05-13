@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/actions"
 	"github.com/CenturyLinkLabs/zodiac/discovery"
 	log "github.com/Sirupsen/logrus"
@@ -26,8 +27,21 @@ func init() {
 		{
 			Name:   "verify",
 			Usage:  "Verify the cluster",
-			Action: verifyAction,
+			Action: createHandler(actions.Verify),
 			Before: requireCluster,
+		},
+		{
+			Name:   "deploy",
+			Usage:  "Deploy a Docker compose template",
+			Action: createHandler(actions.Deploy),
+			Before: requireCluster,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Usage: "Specify an alternate compose file",
+					Value: "docker-compose.yml",
+				},
+			},
 		},
 	}
 }
@@ -79,11 +93,15 @@ func requireCluster(c *cli.Context) error {
 	return nil
 }
 
-func verifyAction(c *cli.Context) {
-	o, err := actions.Verify(cluster)
-	if err != nil {
-		log.Fatal(err)
-	}
+type zodiaction func(c discovery.Cluster) (prettycli.Output, error)
 
-	fmt.Println(o.ToPrettyOutput())
+func createHandler(z zodiaction) func(c *cli.Context) {
+	return func(c *cli.Context) {
+		o, err := z(cluster)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(o.ToPrettyOutput())
+	}
 }
