@@ -4,44 +4,31 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/CenturyLinkLabs/zodiac/discovery"
-	"github.com/samalba/dockerclient"
-	"github.com/samalba/dockerclient/mockclient"
+	"github.com/CenturyLinkLabs/zodiac/cluster"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockEndpoint struct {
-	name   string
-	client dockerclient.Client
-}
-
-func (e mockEndpoint) Client() dockerclient.Client {
-	return e.client
+	ErrorForVersion error
+	version         string
 }
 
 func (e mockEndpoint) Name() string {
-	return e.name
+	return "unused"
 }
 
-var (
-	firstClient  *mockclient.MockClient
-	secondClient *mockclient.MockClient
-	c            discovery.HardcodedCluster
-)
-
-func setup() {
-	firstClient = mockclient.NewMockClient()
-	secondClient = mockclient.NewMockClient()
-	c = discovery.HardcodedCluster{
-		mockEndpoint{name: "First", client: firstClient},
-		mockEndpoint{name: "Second", client: secondClient},
+func (e mockEndpoint) Version() (string, error) {
+	if e.ErrorForVersion != nil {
+		return "", e.ErrorForVersion
 	}
+	return e.version, nil
 }
 
 func TestVerify_Success(t *testing.T) {
-	setup()
-	firstClient.On("Version").Return(&dockerclient.Version{Version: "1.6.1"}, nil)
-	secondClient.On("Version").Return(&dockerclient.Version{Version: "1.6.0"}, nil)
+	c := cluster.HardcodedCluster{
+		mockEndpoint{version: "1.6.1"},
+		mockEndpoint{version: "1.6.0"},
+	}
 	o, err := Verify(c)
 
 	assert.NoError(t, err)
@@ -49,9 +36,10 @@ func TestVerify_Success(t *testing.T) {
 }
 
 func TestVerify_ErroredOldVersion(t *testing.T) {
-	setup()
-	firstClient.On("Version").Return(&dockerclient.Version{Version: "1.6.1"}, nil)
-	secondClient.On("Version").Return(&dockerclient.Version{Version: "1.5.0"}, nil)
+	c := cluster.HardcodedCluster{
+		mockEndpoint{version: "1.6.1"},
+		mockEndpoint{version: "1.5.0"},
+	}
 	o, err := Verify(c)
 
 	assert.EqualError(t, err, "Docker API must be 1.6.0 or above, but it is 1.5.0")
@@ -59,9 +47,10 @@ func TestVerify_ErroredOldVersion(t *testing.T) {
 }
 
 func TestVerify_ErroredCrazyVersion(t *testing.T) {
-	setup()
-	firstClient.On("Version").Return(&dockerclient.Version{Version: "1.6.1"}, nil)
-	secondClient.On("Version").Return(&dockerclient.Version{Version: "eleventy-billion"}, nil)
+	c := cluster.HardcodedCluster{
+		mockEndpoint{version: "1.6.1"},
+		mockEndpoint{version: "eleventy-billion"},
+	}
 	o, err := Verify(c)
 
 	assert.EqualError(t, err, "can't understand Docker version 'eleventy-billion'")
@@ -69,9 +58,10 @@ func TestVerify_ErroredCrazyVersion(t *testing.T) {
 }
 
 func TestVerify_ErroredAPIError(t *testing.T) {
-	setup()
-	firstClient.On("Version").Return(&dockerclient.Version{Version: "1.6.1"}, nil)
-	secondClient.On("Version").Return(&dockerclient.Version{}, errors.New("test error"))
+	c := cluster.HardcodedCluster{
+		mockEndpoint{version: "1.6.1"},
+		mockEndpoint{ErrorForVersion: errors.New("test error")},
+	}
 	o, err := Verify(c)
 
 	assert.EqualError(t, err, "test error")

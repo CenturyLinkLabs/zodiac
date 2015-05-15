@@ -8,7 +8,7 @@ import (
 
 	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/actions"
-	"github.com/CenturyLinkLabs/zodiac/discovery"
+	"github.com/CenturyLinkLabs/zodiac/cluster"
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 )
@@ -16,8 +16,8 @@ import (
 const version = "0.0.1"
 
 var (
-	commands []cli.Command
-	cluster  discovery.HardcodedCluster
+	commands  []cli.Command
+	endpoints cluster.HardcodedCluster
 )
 
 func init() {
@@ -78,26 +78,31 @@ func initializeCLI(c *cli.Context) error {
 }
 
 func requireCluster(c *cli.Context) error {
-	endpoints := c.GlobalString("cluster")
-	if endpoints == "" {
+	arg := c.GlobalString("cluster")
+	if arg == "" {
 		err := errors.New("you must specify a cluster to connect to")
 		log.Error(err)
 		return err
 	}
 
-	cluster = discovery.HardcodedCluster{}
-	for _, s := range strings.Split(endpoints, ",") {
-		cluster = append(cluster, &discovery.DockerEndpoint{URL: s})
+	endpoints = cluster.HardcodedCluster{}
+	for _, host := range strings.Split(arg, ",") {
+		c, err := cluster.NewDockerEndpoint(host)
+		if err != nil {
+			log.Fatalf("there was a problem with endpoint '%s': %s", host, err)
+		}
+
+		endpoints = append(endpoints, c)
 	}
 
 	return nil
 }
 
-type zodiaction func(c discovery.Cluster) (prettycli.Output, error)
+type zodiaction func(c cluster.Cluster) (prettycli.Output, error)
 
 func createHandler(z zodiaction) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		o, err := z(cluster)
+		o, err := z(endpoints)
 		if err != nil {
 			log.Fatal(err)
 		}
