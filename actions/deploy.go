@@ -14,27 +14,29 @@ var (
 	DefaultComposer = composer.NewExecComposer(ProxyAddress)
 )
 
-func Deploy(c cluster.Cluster) (prettycli.Output, error) {
-	// TODO: handle error
-	go DefaultProxy.Serve()
-	// TODO: handle error
-	defer DefaultProxy.Stop()
+func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
+	for _, endpoint := range(c.Endpoints()) {
+		// TODO: handle error
+		go DefaultProxy.Serve(endpoint)
+		// TODO: handle error
+		defer DefaultProxy.Stop()
 
-	// TODO: handle error
-	// TODO: args not passed!
-	DefaultComposer.Run("bogus", "unimplemented", "args")
+		// TODO: handle error
+		// TODO: args not passed!
+		DefaultComposer.Run(args)
 
-	// Phase Deux: Build current manifest
+		// Phase Deux: Build current manifest
 
-	// Phase Deux: Fetch current deployments
+		// Phase Deux: Fetch current deployments
 
-	// Phase Deux: Build new Manifests from ContainerRequest + Old Manifest
+		// Phase Deux: Build new Manifests from ContainerRequest + Old Manifest
 
-	// Phase Un: (Pull?)+Create+Start Containers on all hosts
-	// TODO: handle error
-	c.StartContainers(DefaultComposer.DrainRequests())
+		// Phase Un: (Pull?)+Create+Start Containers on all hosts
+		// TODO: handle error
+		// c.StartContainers(DefaultComposer.DrainRequests())
 
-	// Phase Deux: ^ injecting manifest before Create
+		// Phase Deux: ^ injecting manifest before Create
+	}
 
 	return prettycli.PlainOutput{"whatevs"}, nil
 }

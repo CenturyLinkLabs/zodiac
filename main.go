@@ -98,11 +98,11 @@ func requireCluster(c *cli.Context) error {
 	return nil
 }
 
-type zodiaction func(c cluster.Cluster) (prettycli.Output, error)
+type zodiaction func(cluster.Cluster, []string) (prettycli.Output, error)
 
 func createHandler(z zodiaction) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		o, err := z(endpoints)
+		o, err := z(endpoints, c.Args())
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/samalba/dockerclient"
 )
 
@@ -32,7 +31,7 @@ func (e *DockerEndpoint) Name() string {
 	return e.url
 }
 
-func (e *DockerEndpoint) StartContainers(requests []proxy.ContainerRequest) error {
+// func (e *DockerEndpoint) StartContainers(requests []proxy.ContainerRequest) error {
 	// TODO: Implement
-	return nil
-}
+//	return nil
+// }

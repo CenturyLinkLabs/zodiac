@@ -1,6 +1,6 @@
 package cluster
 
-import "github.com/CenturyLinkLabs/zodiac/proxy"
+// import "github.com/CenturyLinkLabs/zodiac/proxy"
 
 type Cluster interface {
 	Endpoints() []Endpoint
@@ -9,7 +9,7 @@ type Cluster interface {
 type Endpoint interface {
 	Version() (string, error)
 	Name() string
-	StartContainers([]proxy.ContainerRequest) error
+	// StartContainers([]proxy.ContainerRequest) error
 }
 
 type HardcodedCluster []Endpoint
