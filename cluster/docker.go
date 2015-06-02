@@ -31,7 +31,7 @@ func (e *DockerEndpoint) Name() string {
 	return e.url
 }
 
-// func (e *DockerEndpoint) StartContainers(requests []proxy.ContainerRequest) error {
-	// TODO: Implement
-//	return nil
-// }
+func (e *DockerEndpoint) StartContainers(requests []ContainerRequest) error {
+	//TODO: Implement
+	return nil
+}
