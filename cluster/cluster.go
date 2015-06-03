@@ -17,7 +17,9 @@ type Cluster interface {
 type Endpoint interface {
 	Version() (string, error)
 	Name() string
-	StartContainers([]ContainerRequest) error
+	Host() string
+	//StartContainers([]ContainerRequest) error
+	StartContainer(name string, cc dockerclient.ContainerConfig) error
 }
 
 type HardcodedCluster []Endpoint

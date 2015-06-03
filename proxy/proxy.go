@@ -54,7 +54,7 @@ func catchAll(endpoint cluster.Endpoint, w http.ResponseWriter, r *http.Request)
 		log.Debugf(k, v)
 	}
 
-	r.URL.Host = endpoint.Name()
+	r.URL.Host = endpoint.Host()
 	// TODO: we should give the scheme some thought
 	r.URL.Scheme = "http"
 	// log.Infof("Proxied %s", r.URL.String())
@@ -62,10 +62,10 @@ func catchAll(endpoint cluster.Endpoint, w http.ResponseWriter, r *http.Request)
 	req.Header.Set("content-type", "application/json")
 	c := http.Client{}
 	resp, err := c.Do(req)
-	resp.Header.Set("content-type", "application/json")
 	if err != nil {
 		log.Fatal(err)
 	}
+	resp.Header.Set("content-type", "application/json")
 
 	log.Debugf("Logging RESPONSE HEADERs")
 	for k, v := range resp.Header {
