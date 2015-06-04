@@ -22,10 +22,10 @@ type HTTPProxy struct {
 	listener          *net.TCPListener
 }
 
-func NewHTTPProxy(listenAt string) HTTPProxy {
+func NewHTTPProxy(listenAt string) *HTTPProxy {
 	// TODO: Implement. Don't have this do anything resource-intensive since it runs at init.
 
-	return HTTPProxy{
+	return &HTTPProxy{
 		containerRequests: make([]cluster.ContainerRequest, 0),
 	}
 

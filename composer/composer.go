@@ -2,7 +2,7 @@ package composer
 
 import (
 	"bytes"
-	"os/exec" 
+	"os/exec"
 
 	log "github.com/Sirupsen/logrus"
 )
@@ -14,9 +14,9 @@ type Composer interface {
 type ExecComposer struct {
 }
 
-func NewExecComposer(dockerHost string) ExecComposer {
+func NewExecComposer(dockerHost string) *ExecComposer {
 	// TODO: Implement. Don't have this do anything resource-intensive since it runs at init.
-	return ExecComposer{}
+	return &ExecComposer{}
 }
 
 func (c *ExecComposer) DrainRequests(args []string) error {

@@ -8,23 +8,28 @@ import (
 	"github.com/CenturyLinkLabs/zodiac/cluster"
 	"github.com/CenturyLinkLabs/zodiac/composer"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
-	log "github.com/Sirupsen/logrus"
 	"github.com/samalba/dockerclient"
 )
 
 const ProxyAddress = "localhost:31981"
 
 var (
-	DefaultProxy    = proxy.NewHTTPProxy(ProxyAddress)
-	DefaultComposer = composer.NewExecComposer(ProxyAddress)
+	DefaultProxy    proxy.Proxy
+	DefaultComposer composer.Composer
 )
+
+func init() {
+	DefaultProxy = proxy.NewHTTPProxy(ProxyAddress)
+	DefaultComposer = composer.NewExecComposer(ProxyAddress)
+}
 
 func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 
 	var reqs []cluster.ContainerRequest
 
 	for _, endpoint := range c.Endpoints() {
-		client, _ := dockerclient.NewDockerClient(endpoint.Name(), nil)
+
+		//client, _ := dockerclient.NewDockerClient(endpoint.Name(), nil)
 		// TODO: handle error
 		go DefaultProxy.Serve(endpoint)
 		// TODO: handle error
@@ -40,32 +45,21 @@ func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 			//fmt.Println(req.Name)
 
 			var cc dockerclient.ContainerConfig
+
 			if err := json.Unmarshal(req.CreateOptions, &cc); err != nil {
-				log.Fatalf("error unmarshalling request JSON for '%s': %s", req.Name, err.Error())
+				return nil, err
 			}
 
-			// resolve image hacking
-			imageInfo, err := client.InspectImage(cc.Image)
+			imageId, err := endpoint.ResolveImage(cc.Image)
 			if err != nil {
-				if err == dockerclient.ErrNotFound {
-					// TODO: authenticaion?
-					if err := client.PullImage(cc.Image, nil); err != nil {
-						log.Fatalf("error pulling image: '%s'", cc.Image)
-					}
-					imageInfo, err = client.InspectImage(cc.Image)
-					if err != nil {
-						log.Fatalf("error inspecting image: '%s'", cc.Image)
-					}
-				} else {
-					log.Fatalf("error inspecting image: '%s'", cc.Image)
-				}
+				return nil, err
 			}
 
-			cc.Image = imageInfo.Id
+			cc.Image = imageId
 
 			newManifest, err := json.Marshal(cc)
 			if err != nil {
-				fmt.Println(err)
+				return nil, err
 			}
 
 			if cc.Labels == nil {

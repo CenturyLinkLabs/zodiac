@@ -7,6 +7,7 @@ import (
 	"github.com/samalba/dockerclient"
 	"github.com/samalba/dockerclient/mockclient"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestNewDockerEndpointSuccessful(t *testing.T) {
@@ -45,4 +46,27 @@ func TestDockerEndpointVersion_ErroredClient(t *testing.T) {
 	v, err := e.Version()
 	assert.Empty(t, "", v)
 	assert.EqualError(t, err, "test error")
+}
+
+func TestResolveImage_WhenImageExisting(t *testing.T) {
+	c := mockclient.NewMockClient()
+	c.On("InspectImage", "Foo").Return(&dockerclient.ImageInfo{Id: "ytu678"}, nil)
+	e := DockerEndpoint{client: c}
+	imageID, err := e.ResolveImage("Foo")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "ytu678", imageID)
+}
+
+func TestResolveImage_WhenImageDoesNotExist(t *testing.T) {
+	c := mockclient.NewMockClient()
+	c.On("InspectImage", "Foo").Return(&dockerclient.ImageInfo{}, dockerclient.ErrNotFound).Once()
+	c.On("PullImage", "Foo", mock.Anything).Return(nil)
+	c.On("InspectImage", "Foo").Return(&dockerclient.ImageInfo{Id: "yui890"}, nil).Once()
+	e := DockerEndpoint{client: c}
+	imageID, err := e.ResolveImage("Foo")
+
+	assert.NoError(t, err)
+	assert.Equal(t, "yui890", imageID)
+	c.AssertExpectations(t)
 }

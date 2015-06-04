@@ -18,6 +18,7 @@ type Endpoint interface {
 	Version() (string, error)
 	Name() string
 	Host() string
+	ResolveImage(string) (string, error)
 	//StartContainers([]ContainerRequest) error
 	StartContainer(name string, cc dockerclient.ContainerConfig) error
 }

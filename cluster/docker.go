@@ -53,6 +53,26 @@ func (e *DockerEndpoint) StartContainer(name string, cc dockerclient.ContainerCo
 	return nil
 }
 
+func (e *DockerEndpoint) ResolveImage(name string) (string, error) {
+	imageInfo, err := e.client.InspectImage(name)
+	if err != nil {
+		if err == dockerclient.ErrNotFound {
+			// TODO: authenticaion?
+			if err := e.client.PullImage(name, nil); err != nil {
+				return "", err
+			}
+			imageInfo, err = e.client.InspectImage(name)
+			if err != nil {
+				return "", err
+			}
+		} else {
+			return "", err
+		}
+	}
+
+	return imageInfo.Id, nil
+}
+
 //func (e *DockerEndpoint) StartContainers(requests []ContainerRequest) error {
 //for _, req := range requests {
 //client, err := dockerclient.NewDockerClient(e.Name(), nil)
