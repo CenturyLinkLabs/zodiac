@@ -1,0 +1,22 @@
+machine:
+  services:
+    - docker
+
+general:
+  artifacts:
+    - zodiac
+
+dependencies:
+  override:
+    - docker pull centurylink/golang-tester:latest
+    - docker pull centurylink/golang-builder:latest
+
+test:
+  override:
+    - docker run -v $(pwd):/src centurylink/golang-tester
+
+deployment:
+  hub:
+    branch: master
+    commands:
+      - docker run -v $(pwd):/src centurylink/golang-builder:latest
