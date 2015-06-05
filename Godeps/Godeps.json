@@ -40,10 +40,18 @@
 		},
 		{
 			"ImportPath": "github.com/samalba/dockerclient",
-			"Rev": "7f6065748bab373bb99bb0cf5ce343c3b1393491"
+			"Rev": "979115d9e4d847c0e936d539c0584e25c226162e"
+		},
+		{
+			"ImportPath": "github.com/stretchr/objx",
+			"Rev": "cbeaeb16a013161a98496fad62933b1d21786672"
 		},
 		{
 			"ImportPath": "github.com/stretchr/testify/assert",
+			"Rev": "5ab65693f48b284b3f7a83114dd7b166b45f0193"
+		},
+		{
+			"ImportPath": "github.com/stretchr/testify/mock",
 			"Rev": "5ab65693f48b284b3f7a83114dd7b166b45f0193"
 		}
 	]

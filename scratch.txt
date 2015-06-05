@@ -1,0 +1,11 @@
+Try to let compose do its thang, then attach mani
+
+
+
+zcli -> compose -> zproxy -> Docker
+
+
+* What happens if the container is already running?
+*
+
+swarm cluster id: 56e981b0eeb24261e1030096feaa8ab6
