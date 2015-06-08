@@ -109,3 +109,40 @@ func TestResolveImage_WhenSecondInspectErrors(t *testing.T) {
 	assert.EqualError(t, err, "whoops")
 	c.AssertExpectations(t)
 }
+
+func TestListContainers_Success(t *testing.T) {
+	expected := []dockerclient.Container{{Id: "foo"}}
+	c := mockclient.NewMockClient()
+	c.On("ListContainers", true, false, "").Return(expected, nil)
+
+	e := DockerEndpoint{client: c}
+	containers, err := e.ListContainers()
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, containers)
+	c.AssertExpectations(t)
+}
+
+func TestInspectContainer_Success(t *testing.T) {
+	expected := &dockerclient.ContainerInfo{Id: "foo"}
+	c := mockclient.NewMockClient()
+	c.On("InspectContainer", "foo").Return(expected, nil)
+
+	e := DockerEndpoint{client: c}
+	container, err := e.InspectContainer("foo")
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, container)
+	c.AssertExpectations(t)
+}
+
+func TestRemoveContainer_Success(t *testing.T) {
+	c := mockclient.NewMockClient()
+	c.On("RemoveContainer", "foo", true, false).Return(nil)
+
+	e := DockerEndpoint{client: c}
+	err := e.RemoveContainer("foo")
+
+	assert.NoError(t, err)
+	c.AssertExpectations(t)
+}

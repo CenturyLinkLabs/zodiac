@@ -73,6 +73,19 @@ func (e *DockerEndpoint) ResolveImage(name string) (string, error) {
 	return imageInfo.Id, nil
 }
 
+func (e *DockerEndpoint) ListContainers() ([]dockerclient.Container, error) {
+	return e.client.ListContainers(true, false, "")
+}
+
+func (e *DockerEndpoint) InspectContainer(name string) (*dockerclient.ContainerInfo, error) {
+	return e.client.InspectContainer(name)
+}
+
+func (e *DockerEndpoint) RemoveContainer(name string) error {
+	//TODO: be more graceful
+	return e.client.RemoveContainer(name, true, false)
+}
+
 //func (e *DockerEndpoint) StartContainers(requests []ContainerRequest) error {
 //for _, req := range requests {
 //client, err := dockerclient.NewDockerClient(e.Name(), nil)
