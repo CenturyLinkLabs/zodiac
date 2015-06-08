@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/CenturyLinkLabs/zodiac/cluster"
@@ -68,4 +69,12 @@ func TestDeploy_Success(t *testing.T) {
 	assert.Equal(t, []string{"zodiac"}, resolveArgs)
 	assert.NotEmpty(t, mostRecentCall.Config.Labels["zodiacManifest"])
 	assert.Equal(t, "Successfully deployed 1 container(s)", o.ToPrettyOutput())
+
+	dms := DeploymentManifests{}
+	err = json.Unmarshal([]byte(mostRecentCall.Config.Labels["zodiacManifest"]), &dms)
+	assert.NoError(t, err)
+	assert.Len(t, dms, 1)
+	dm := dms[0]
+	assert.NotEqual(t, "", dm.DeployedAt)
+	assert.Equal(t, "xyz321", dm.Services[0].ContainerConfig.Image)
 }

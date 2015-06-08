@@ -70,3 +70,42 @@ func TestResolveImage_WhenImageDoesNotExist(t *testing.T) {
 	assert.Equal(t, "yui890", imageID)
 	c.AssertExpectations(t)
 }
+
+func TestResolveImage_WhenInitialInspectErrors(t *testing.T) {
+	c := mockclient.NewMockClient()
+	c.On("InspectImage", "Foo").Return(&dockerclient.ImageInfo{}, errors.New("oops"))
+
+	e := DockerEndpoint{client: c}
+	imageID, err := e.ResolveImage("Foo")
+
+	assert.Equal(t, "", imageID)
+	assert.EqualError(t, err, "oops")
+	c.AssertExpectations(t)
+}
+
+func TestResolveImage_WhenPullErrors(t *testing.T) {
+	c := mockclient.NewMockClient()
+	c.On("InspectImage", "Foo").Return(&dockerclient.ImageInfo{}, dockerclient.ErrNotFound).Once()
+	c.On("PullImage", "Foo", mock.Anything).Return(errors.New("uh-oh"))
+
+	e := DockerEndpoint{client: c}
+	imageID, err := e.ResolveImage("Foo")
+
+	assert.Equal(t, "", imageID)
+	assert.EqualError(t, err, "uh-oh")
+	c.AssertExpectations(t)
+}
+
+func TestResolveImage_WhenSecondInspectErrors(t *testing.T) {
+	c := mockclient.NewMockClient()
+	c.On("InspectImage", "Foo").Return(&dockerclient.ImageInfo{}, dockerclient.ErrNotFound).Once()
+	c.On("PullImage", "Foo", mock.Anything).Return(nil)
+	c.On("InspectImage", "Foo").Return(&dockerclient.ImageInfo{}, errors.New("whoops")).Once()
+
+	e := DockerEndpoint{client: c}
+	imageID, err := e.ResolveImage("Foo")
+
+	assert.Equal(t, "", imageID)
+	assert.EqualError(t, err, "whoops")
+	c.AssertExpectations(t)
+}

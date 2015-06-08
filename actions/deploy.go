@@ -3,6 +3,7 @@ package actions
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/cluster"
@@ -23,6 +24,18 @@ func init() {
 	DefaultComposer = composer.NewExecComposer(ProxyAddress)
 }
 
+type DeploymentManifests []DeploymentManifest
+
+type DeploymentManifest struct {
+	Services   []Service
+	DeployedAt string
+}
+
+type Service struct {
+	Name            string
+	ContainerConfig dockerclient.ContainerConfig
+}
+
 func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 
 	var reqs []cluster.ContainerRequest
@@ -40,32 +53,42 @@ func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 		DefaultComposer.Run(args)
 		reqs = DefaultProxy.DrainRequests()
 
+		dm := DeploymentManifest{
+			Services:   []Service{},
+			DeployedAt: time.Now().Format(time.RFC3339),
+		}
+
 		for _, req := range reqs {
-
-			//fmt.Println(req.Name)
-
-			var cc dockerclient.ContainerConfig
-
-			if err := json.Unmarshal(req.CreateOptions, &cc); err != nil {
-				return nil, err
-			}
-
-			imageId, err := endpoint.ResolveImage(cc.Image)
+			s, err := serviceForRequest(req)
 			if err != nil {
 				return nil, err
 			}
 
-			cc.Image = imageId
-
-			newManifest, err := json.Marshal(cc)
+			imageId, err := endpoint.ResolveImage(s.ContainerConfig.Image)
 			if err != nil {
 				return nil, err
 			}
 
-			if cc.Labels == nil {
-				cc.Labels = make(map[string]string)
+			s.ContainerConfig.Image = imageId
+
+			dm.Services = append(dm.Services, s)
+		}
+
+		var dms DeploymentManifests
+		dms = append(dms, dm)
+
+		manifestsBlob, err := json.Marshal(dms)
+		if err != nil {
+			return nil, err
+		}
+
+		//for _, req := range reqs {
+		for _, svc := range dm.Services {
+
+			if svc.ContainerConfig.Labels == nil {
+				svc.ContainerConfig.Labels = make(map[string]string)
 			}
-			cc.Labels["zodiacManifest"] = string(newManifest)
+			svc.ContainerConfig.Labels["zodiacManifest"] = string(manifestsBlob)
 			// Phase Deux: Build current manifest
 
 			// Phase Deux: Fetch current deployments
@@ -76,11 +99,24 @@ func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 			// TODO: handle error
 
 			//endpoint.StartContainers(DefaultProxy.DrainRequests())
-			endpoint.StartContainer(req.Name, cc)
+			endpoint.StartContainer(svc.Name, svc.ContainerConfig)
 			// Phase Deux: ^ injecting manifest before Create
 		}
 	}
 
 	output := fmt.Sprintf("Successfully deployed %d container(s)", len(reqs))
 	return prettycli.PlainOutput{output}, nil
+}
+
+func serviceForRequest(req cluster.ContainerRequest) (Service, error) {
+	var cc dockerclient.ContainerConfig
+
+	if err := json.Unmarshal(req.CreateOptions, &cc); err != nil {
+		return Service{}, err
+	}
+
+	return Service{
+		Name:            req.Name,
+		ContainerConfig: cc,
+	}, nil
 }
