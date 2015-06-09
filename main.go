@@ -43,6 +43,19 @@ func init() {
 				},
 			},
 		},
+		{
+			Name:   "rollback",
+			Usage:  "Rollback a deployment",
+			Action: createHandler(actions.Rollback),
+			Before: requireCluster,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Usage: "Specify an alternate compose file",
+					Value: "docker-compose.yml",
+				},
+			},
+		},
 	}
 }
 
