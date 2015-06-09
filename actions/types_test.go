@@ -28,6 +28,14 @@ func (e mockEndpoint) ResolveImage(imgNm string) (string, error) {
 	return "abc123", nil
 }
 
+func (e mockEndpoint) InspectContainer(name string) (*dockerclient.ContainerInfo, error) {
+	return &dockerclient.ContainerInfo{}, nil
+}
+
+func (e mockEndpoint) RemoveContainer(name string) error {
+	return nil
+}
+
 func (e mockEndpoint) Version() (string, error) {
 	return "1.0", nil
 }

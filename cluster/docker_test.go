@@ -110,19 +110,6 @@ func TestResolveImage_WhenSecondInspectErrors(t *testing.T) {
 	c.AssertExpectations(t)
 }
 
-func TestListContainers_Success(t *testing.T) {
-	expected := []dockerclient.Container{{Id: "foo"}}
-	c := mockclient.NewMockClient()
-	c.On("ListContainers", true, false, "").Return(expected, nil)
-
-	e := DockerEndpoint{client: c}
-	containers, err := e.ListContainers()
-
-	assert.NoError(t, err)
-	assert.Equal(t, expected, containers)
-	c.AssertExpectations(t)
-}
-
 func TestInspectContainer_Success(t *testing.T) {
 	expected := &dockerclient.ContainerInfo{Id: "foo"}
 	c := mockclient.NewMockClient()

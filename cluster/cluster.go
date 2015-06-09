@@ -21,6 +21,8 @@ type Endpoint interface {
 	ResolveImage(string) (string, error)
 	//StartContainers([]ContainerRequest) error
 	StartContainer(name string, cc dockerclient.ContainerConfig) error
+	InspectContainer(name string) (*dockerclient.ContainerInfo, error)
+	RemoveContainer(name string) error
 }
 
 type HardcodedCluster []Endpoint

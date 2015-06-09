@@ -74,7 +74,25 @@ func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 			dm.Services = append(dm.Services, s)
 		}
 
+		oldManifestBlob := "[]"
+		for _, svc := range dm.Services {
+			ci, err := endpoint.InspectContainer(svc.Name)
+
+			if err == nil {
+				err := endpoint.RemoveContainer(svc.Name)
+				if err != nil {
+					//TODO: figure out if we really want to abort here
+					return nil, err
+				}
+			}
+			// TODO, only assign if not empty
+			oldManifestBlob = ci.Config.Labels["zodiacManifest"]
+		}
+
 		var dms DeploymentManifests
+		if err := json.Unmarshal([]byte(oldManifestBlob), &dms); err != nil {
+			return nil, err
+		}
 		dms = append(dms, dm)
 
 		manifestsBlob, err := json.Marshal(dms)
