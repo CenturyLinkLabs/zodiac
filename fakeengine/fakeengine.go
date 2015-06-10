@@ -1,6 +1,7 @@
 package fakeengine
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 
@@ -9,12 +10,18 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
+func init() {
+	log.SetLevel(log.DebugLevel)
+}
+
 func NewServer() *httptest.Server {
 	r := mux.NewRouter()
 	baseURL := "/" + dockerclient.APIVersion
 	r.HandleFunc(baseURL+"/version", handlerGetVersion).Methods("GET")
 	r.HandleFunc(baseURL+"/images/{name}/json", handleInspectImage).Methods("GET")
+	r.HandleFunc(baseURL+"/images/{org}/{name}/json", handleInspectImage).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/create", handleCreateContainer).Methods("POST")
+	r.HandleFunc(baseURL+"/containers/{id}", handleDeleteContainer).Methods("DELETE")
 	r.HandleFunc(baseURL+"/containers/{id}/start", handleStartContainer).Methods("POST")
 	r.HandleFunc("/{rest:.*}", catchAll)
 	return httptest.NewServer(handlerAccessLog(r))
@@ -65,11 +72,16 @@ func handleCreateContainer(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(body))
 }
 
+func handleDeleteContainer(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 204)
+}
+
 func handleStartContainer(w http.ResponseWriter, r *http.Request) {
 	writeHeaders(w, 204)
 }
 
 func catchAll(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("caught this URL: %s\n\n", r.URL)
 	writeHeaders(w, 200)
-	w.Write([]byte("[]"))
+	w.Write([]byte("BUSTED!!!!"))
 }

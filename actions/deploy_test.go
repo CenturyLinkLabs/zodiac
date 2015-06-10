@@ -2,6 +2,7 @@ package actions
 
 import (
 	"encoding/json"
+	_ "fmt"
 	"testing"
 
 	"github.com/CenturyLinkLabs/zodiac/cluster"
@@ -21,11 +22,6 @@ func (e mockDeployEndpoint) StartContainer(nm string, cfg dockerclient.Container
 
 func (e mockDeployEndpoint) ResolveImage(imgNm string) (string, error) {
 	return e.resolveImageCallback(imgNm)
-}
-
-type capturedStartParams struct {
-	Name   string
-	Config dockerclient.ContainerConfig
 }
 
 func TestDeploy_Success(t *testing.T) {

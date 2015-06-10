@@ -1,7 +1,6 @@
 package cluster
 
 import (
-	"fmt"
 	"net/url"
 
 	log "github.com/Sirupsen/logrus"
@@ -48,7 +47,7 @@ func (e *DockerEndpoint) StartContainer(name string, cc dockerclient.ContainerCo
 
 	log.Infof("%s created as %s", name, id)
 
-	if err := e.client.StartContainer(id, &dockerclient.HostConfig{}); err != nil {
+	if err := e.client.StartContainer(id, nil); err != nil {
 		log.Fatal("problem starting: ", err)
 	}
 	return nil
@@ -57,6 +56,7 @@ func (e *DockerEndpoint) StartContainer(name string, cc dockerclient.ContainerCo
 func (e *DockerEndpoint) ResolveImage(name string) (string, error) {
 	imageInfo, err := e.client.InspectImage(name)
 	if err != nil {
+
 		if err == dockerclient.ErrNotFound {
 			// TODO: authenticaion?
 			if err := e.client.PullImage(name, nil); err != nil {
@@ -80,7 +80,6 @@ func (e *DockerEndpoint) InspectContainer(name string) (*dockerclient.ContainerI
 
 func (e *DockerEndpoint) RemoveContainer(name string) error {
 	//TODO: be more graceful
-	fmt.Printf("REMOVING: %s\n", name)
 	return e.client.RemoveContainer(name, true, false)
 }
 
