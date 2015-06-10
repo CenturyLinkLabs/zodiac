@@ -1,0 +1,5 @@
+web:
+  image: example/webserver
+
+db:
+  image: example/database

@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/CenturyLinkLabs/prettycli"
-	"github.com/CenturyLinkLabs/zodiac/discovery"
+	"github.com/CenturyLinkLabs/zodiac/cluster"
 	log "github.com/Sirupsen/logrus"
 	"github.com/blang/semver"
 )
 
 var RequredAPIVersion = semver.MustParse("1.6.0")
 
-func Verify(c discovery.Cluster) (prettycli.Output, error) {
+func Verify(c cluster.Cluster) (prettycli.Output, error) {
 	for _, e := range c.Endpoints() {
 		log.Infof("validating endpoint %s", e.Name())
 
@@ -24,16 +24,16 @@ func Verify(c discovery.Cluster) (prettycli.Output, error) {
 	return prettycli.PlainOutput{s}, nil
 }
 
-func verifyEndpoint(e discovery.Endpoint) error {
-	version, err := e.Client().Version()
+func verifyEndpoint(e cluster.Endpoint) error {
+	version, err := e.Version()
 	if err != nil {
 		return err
 	}
 
-	log.Infof("%s reported version %s", e.Name(), version.Version)
-	semver, err := semver.Make(version.Version)
+	log.Infof("%s reported version %s", e.Name(), version)
+	semver, err := semver.Make(version)
 	if err != nil {
-		return fmt.Errorf("can't understand Docker version '%s'", version.Version)
+		return fmt.Errorf("can't understand Docker version '%s'", version)
 	}
 
 	if semver.LT(RequredAPIVersion) {
