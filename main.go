@@ -56,6 +56,19 @@ func init() {
 				},
 			},
 		},
+		{
+			Name:   "list",
+			Usage:  "List all known deployments",
+			Action: createHandler(actions.List),
+			Before: requireCluster,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "file, f",
+					Usage: "Specify an alternate compose file",
+					Value: "docker-compose.yml",
+				},
+			},
+		},
 	}
 }
 
