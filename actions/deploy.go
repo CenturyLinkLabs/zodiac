@@ -41,17 +41,7 @@ func Rollback(c cluster.Cluster, args []string) (prettycli.Output, error) {
 
 	for _, endpoint := range c.Endpoints() {
 
-		//client, _ := dockerclient.NewDockerClient(endpoint.Name(), nil)
-		// TODO: handle error
-		go DefaultProxy.Serve(endpoint)
-		// TODO: handle error
-		defer DefaultProxy.Stop()
-
-		// TODO: handle error
-		// TODO: args not passed!
-		DefaultComposer.Run(args)
-		reqs = DefaultProxy.DrainRequests()
-
+		reqs = collectRequests(endpoint, args)
 		// Get most recent deployment's manifests
 		var manifests DeploymentManifests
 		for _, req := range reqs {
@@ -61,6 +51,7 @@ func Rollback(c cluster.Cluster, args []string) (prettycli.Output, error) {
 			}
 
 			if err := json.Unmarshal([]byte(ci.Config.Labels["zodiacManifest"]), &manifests); err != nil {
+				fmt.Printf("ERROR: %s\n\n", err)
 				return nil, err
 			}
 
@@ -80,22 +71,9 @@ func Rollback(c cluster.Cluster, args []string) (prettycli.Output, error) {
 
 		manifests = append(manifests, newDeployment)
 		newDeployment = manifests[len(manifests)-1]
-		newDeployment.DeployedAt = time.Now().Format(time.RFC3339)
+		manifests[len(manifests)-1].DeployedAt = time.Now().Format(time.RFC3339)
 
-		manifestsBlob, err := json.Marshal(manifests)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, svc := range newDeployment.Services {
-
-			if svc.ContainerConfig.Labels == nil {
-				svc.ContainerConfig.Labels = make(map[string]string)
-			}
-			svc.ContainerConfig.Labels["zodiacManifest"] = string(manifestsBlob)
-
-			endpoint.StartContainer(svc.Name, svc.ContainerConfig)
-		}
+		startServices(newDeployment.Services, manifests, endpoint)
 	}
 
 	output := fmt.Sprintf("Successfully rolled back to %d container(s)", len(reqs))
@@ -108,16 +86,7 @@ func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 
 	for _, endpoint := range c.Endpoints() {
 
-		//client, _ := dockerclient.NewDockerClient(endpoint.Name(), nil)
-		// TODO: handle error
-		go DefaultProxy.Serve(endpoint)
-		// TODO: handle error
-		defer DefaultProxy.Stop()
-
-		// TODO: handle error
-		// TODO: args not passed!
-		DefaultComposer.Run(args)
-		reqs = DefaultProxy.DrainRequests()
+		reqs = collectRequests(endpoint, args)
 
 		dm := DeploymentManifest{
 			Services:   []Service{},
@@ -158,26 +127,13 @@ func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 			}
 		}
 
-		var dms DeploymentManifests
-		if err := json.Unmarshal([]byte(oldManifestBlob), &dms); err != nil {
+		var manifests DeploymentManifests
+		if err := json.Unmarshal([]byte(oldManifestBlob), &manifests); err != nil {
 			return nil, err
 		}
-		dms = append(dms, dm)
+		manifests = append(manifests, dm)
 
-		manifestsBlob, err := json.Marshal(dms)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, svc := range dm.Services {
-
-			if svc.ContainerConfig.Labels == nil {
-				svc.ContainerConfig.Labels = make(map[string]string)
-			}
-			svc.ContainerConfig.Labels["zodiacManifest"] = string(manifestsBlob)
-
-			endpoint.StartContainer(svc.Name, svc.ContainerConfig)
-		}
+		startServices(dm.Services, manifests, endpoint)
 	}
 
 	output := fmt.Sprintf("Successfully deployed %d container(s)", len(reqs))
@@ -195,4 +151,34 @@ func serviceForRequest(req cluster.ContainerRequest) (Service, error) {
 		Name:            req.Name,
 		ContainerConfig: cc,
 	}, nil
+}
+
+func collectRequests(endpoint cluster.Endpoint, args []string) []cluster.ContainerRequest {
+	// TODO: handle error
+	go DefaultProxy.Serve(endpoint)
+	// TODO: handle error
+	defer DefaultProxy.Stop()
+
+	// TODO: handle error
+	// TODO: args not passed!
+	DefaultComposer.Run(args)
+	return DefaultProxy.DrainRequests()
+}
+
+func startServices(services []Service, manifests DeploymentManifests, endpoint cluster.Endpoint) error {
+	manifestsBlob, err := json.Marshal(manifests)
+	if err != nil {
+		return err
+	}
+
+	for _, svc := range services {
+		if svc.ContainerConfig.Labels == nil {
+			svc.ContainerConfig.Labels = make(map[string]string)
+		}
+		svc.ContainerConfig.Labels["zodiacManifest"] = string(manifestsBlob)
+
+		endpoint.StartContainer(svc.Name, svc.ContainerConfig)
+	}
+
+	return nil
 }
