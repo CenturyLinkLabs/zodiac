@@ -35,6 +35,7 @@ func (p *HTTPProxy) Serve(endpoint cluster.Endpoint) error {
 	r := mux.NewRouter()
 	r.Path("/v1.15/containers/create").Methods("POST").HandlerFunc(p.create)
 	r.Path("/v1.15/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
+	r.Path("/v1.15/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
 	r.Path("/v1.15/containers/json").Methods("GET").HandlerFunc(p.listAll)
 	r.Path("/{rest:.*}").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		catchAll(endpoint, w, r)
@@ -112,6 +113,17 @@ func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
 func (p *HTTPProxy) inspect(w http.ResponseWriter, r *http.Request) {
 	log.Infof("INSPECT request to %s", r.URL)
 	fmt.Fprintf(w, `{"Id": "foo", "Name": "/hangry_welch"}`)
+}
+
+func (p *HTTPProxy) start(w http.ResponseWriter, r *http.Request) {
+	log.Infof("START request to %s", r.URL)
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		//TODO: return errors to compose
+	}
+
+	log.Infof(string(body))
+	w.WriteHeader(204)
 }
 
 func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {

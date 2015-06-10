@@ -71,6 +71,8 @@ func TestDeploy_Successful(t *testing.T) {
 	defer s.Close()
 
 	r := b.Run(t, endpointFlag, "deploy")
+	fmt.Println(r.Stderr())
+	fmt.Println(r.Stdout())
 	r.AssertSuccessful()
 	assert.Contains(t, r.Stdout(), "Successfully deployed 1 container(s)")
 	assert.Empty(t, r.Stderr())

@@ -151,8 +151,11 @@ func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
 					return nil, err
 				}
 			}
+
 			// TODO, only assign if not empty
-			oldManifestBlob = ci.Config.Labels["zodiacManifest"]
+			if (ci != nil) && (ci.Config != nil) && (ci.Config.Labels != nil) && (ci.Config.Labels["zodiacManifest"] != "") {
+				oldManifestBlob = ci.Config.Labels["zodiacManifest"]
+			}
 		}
 
 		var dms DeploymentManifests
