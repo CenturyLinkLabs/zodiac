@@ -70,11 +70,22 @@ func TestDeploy_Successful(t *testing.T) {
 	s, endpointFlag := newFakeServerAndFlag()
 	defer s.Close()
 
-	r := b.Run(t, endpointFlag, "deploy", "-f", "fixtures/webapp.yml")
+	r := b.Run(t, endpointFlag, "deploy")
 	r.AssertSuccessful()
-	assert.Contains(t, r.Stdout(), "Successfully deployed 2 container(s)")
+	assert.Contains(t, r.Stdout(), "Successfully deployed 1 container(s)")
 	assert.Empty(t, r.Stderr())
 }
+
+//func TestDeploy_ExplicitComposeYmlSuccessful(t *testing.T) {
+//setup(t)
+//s, endpointFlag := newFakeServerAndFlag()
+//defer s.Close()
+
+//r := b.Run(t, endpointFlag, "deploy", "-f", "fixtures/webapp.yml")
+//r.AssertSuccessful()
+//assert.Contains(t, r.Stdout(), "Successfully deployed 2 container(s)")
+//assert.Empty(t, r.Stderr())
+//}
 
 // TODO: fail the tests immediately if compose can't be found. For now at least.
 // TODO: test arguments to compose

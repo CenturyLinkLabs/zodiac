@@ -1,6 +1,14 @@
 package cluster
 
-import "github.com/CenturyLinkLabs/zodiac/proxy"
+import (
+	"github.com/samalba/dockerclient"
+)
+
+type ContainerRequest struct {
+	Name          string
+	CreateOptions []byte
+	Config        dockerclient.ContainerConfig
+}
 
 type Cluster interface {
 	Endpoints() []Endpoint
@@ -9,7 +17,12 @@ type Cluster interface {
 type Endpoint interface {
 	Version() (string, error)
 	Name() string
-	StartContainers([]proxy.ContainerRequest) error
+	Host() string
+	ResolveImage(string) (string, error)
+	//StartContainers([]ContainerRequest) error
+	StartContainer(name string, cc dockerclient.ContainerConfig) error
+	InspectContainer(name string) (*dockerclient.ContainerInfo, error)
+	RemoveContainer(name string) error
 }
 
 type HardcodedCluster []Endpoint

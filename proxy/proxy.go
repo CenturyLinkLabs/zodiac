@@ -1,38 +1,120 @@
 package proxy
 
-import "github.com/samalba/dockerclient"
+import (
+	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
 
-type ContainerRequest struct {
-	Name          string
-	CreateOptions []byte
-	Config        dockerclient.ContainerConfig
-}
+	"github.com/CenturyLinkLabs/zodiac/cluster"
+	log "github.com/Sirupsen/logrus"
+	"github.com/gorilla/mux"
+)
 
 type Proxy interface {
-	Serve() error
+	Serve(cluster.Endpoint) error
 	Stop() error
-	DrainRequests() []*ContainerRequest
+	DrainRequests() []cluster.ContainerRequest
 }
 
 type HTTPProxy struct {
-	//containerRequests []*ContainerRequest
+	containerRequests []cluster.ContainerRequest
+	listener          *net.TCPListener
 }
 
-func NewHTTPProxy(listenAt string) HTTPProxy {
+func NewHTTPProxy(listenAt string) *HTTPProxy {
 	// TODO: Implement. Don't have this do anything resource-intensive since it runs at init.
-	return HTTPProxy{}
+
+	return &HTTPProxy{
+		containerRequests: make([]cluster.ContainerRequest, 0),
+	}
+
 }
 
-func (p *HTTPProxy) Serve() error {
-	return nil
+func (p *HTTPProxy) Serve(endpoint cluster.Endpoint) error {
+	r := mux.NewRouter()
+	r.Path("/v1.15/containers/create").Methods("POST").HandlerFunc(p.create)
+	r.Path("/v1.15/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
+	r.Path("/v1.15/containers/json").Methods("GET").HandlerFunc(p.listAll)
+	r.Path("/{rest:.*}").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		catchAll(endpoint, w, r)
+	})
+
+	// TODO: port should be configurable
+	laddr, _ := net.ResolveTCPAddr("tcp", "localhost:3000")
+	listener, _ := net.ListenTCP("tcp", laddr)
+	p.listener = listener
+	return http.Serve(listener, r)
+}
+
+func catchAll(endpoint cluster.Endpoint, w http.ResponseWriter, r *http.Request) {
+	log.Infof("unhandled request to %s", r.URL)
+
+	log.Debugf("Logging request HEADERs")
+	for k, v := range r.Header {
+		log.Debugf(k, v)
+	}
+
+	r.URL.Host = endpoint.Host()
+	// TODO: we should give the scheme some thought
+	r.URL.Scheme = "http"
+	// log.Infof("Proxied %s", r.URL.String())
+	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
+	req.Header.Set("content-type", "application/json")
+	c := http.Client{}
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resp.Header.Set("content-type", "application/json")
+
+	log.Debugf("Logging RESPONSE HEADERs")
+	for k, v := range resp.Header {
+		log.Debugf(k, v)
+	}
+
+	// TODO, is there a better way?
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	fmt.Fprintf(w, string(respBody))
 }
 
 func (p *HTTPProxy) Stop() error {
+	p.listener.Close()
 	return nil
 }
 
-func (p *HTTPProxy) DrainRequests() []*ContainerRequest {
+func (p *HTTPProxy) DrainRequests() []cluster.ContainerRequest {
 	// TODO implement, and don't forget that this is supposed to 'drain', as in
 	// remove the saved requests that this instance has.
-	return make([]*ContainerRequest, 0)
+	return p.containerRequests
+}
+
+func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
+	log.Infof("CREATE request to %s", r.URL)
+	//log.Infof("CREATE form %s", r.Form)
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		//TODO: return errors to compose
+	}
+
+	//TODO: not all requests have a name if the service is being restarted
+	req := cluster.ContainerRequest{
+		Name:          r.URL.Query()["name"][0],
+		CreateOptions: body,
+	}
+
+	p.containerRequests = append(p.containerRequests, req)
+
+	fmt.Fprintf(w, `{ "Id":"foo", "Warnings":[] }`)
+}
+
+func (p *HTTPProxy) inspect(w http.ResponseWriter, r *http.Request) {
+	log.Infof("INSPECT request to %s", r.URL)
+	fmt.Fprintf(w, `{"Id": "foo", "Name": "/hangry_welch"}`)
+}
+
+func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
+	log.Infof("INSPECT request to %s", r.URL)
+	fmt.Fprintf(w, `[]`)
 }

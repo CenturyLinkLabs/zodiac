@@ -11,7 +11,7 @@ import (
 
 var RequredAPIVersion = semver.MustParse("1.6.0")
 
-func Verify(c cluster.Cluster) (prettycli.Output, error) {
+func Verify(c cluster.Cluster, args []string) (prettycli.Output, error) {
 	for _, e := range c.Endpoints() {
 		log.Infof("validating endpoint %s", e.Name())
 

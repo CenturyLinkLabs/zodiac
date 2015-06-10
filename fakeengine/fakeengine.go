@@ -13,6 +13,10 @@ func NewServer() *httptest.Server {
 	r := mux.NewRouter()
 	baseURL := "/" + dockerclient.APIVersion
 	r.HandleFunc(baseURL+"/version", handlerGetVersion).Methods("GET")
+	r.HandleFunc(baseURL+"/images/{name}/json", handleInspectImage).Methods("GET")
+	r.HandleFunc(baseURL+"/containers/create", handleCreateContainer).Methods("POST")
+	r.HandleFunc(baseURL+"/containers/{id}/start", handleStartContainer).Methods("POST")
+	r.HandleFunc("/{rest:.*}", catchAll)
 	return httptest.NewServer(handlerAccessLog(r))
 }
 
@@ -24,17 +28,14 @@ func handlerAccessLog(handler http.Handler) http.Handler {
 	return http.HandlerFunc(logHandler)
 }
 
-func writeHeaders(w http.ResponseWriter, code int, jobName string) {
+func writeHeaders(w http.ResponseWriter, code int) {
 	h := w.Header()
 	h.Add("Content-Type", "application/json")
-	if jobName != "" {
-		h.Add("Job-Name", jobName)
-	}
 	w.WriteHeader(code)
 }
 
 func handlerGetVersion(w http.ResponseWriter, r *http.Request) {
-	writeHeaders(w, 200, "version")
+	writeHeaders(w, 200)
 	body := `{
 		"Version": "1.6.0",
 		"Os": "linux",
@@ -45,4 +46,30 @@ func handlerGetVersion(w http.ResponseWriter, r *http.Request) {
 		"ApiVersion": "1.18"
 	}`
 	w.Write([]byte(body))
+}
+
+func handleInspectImage(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 200)
+	body := `{
+		"Id": "abc123"
+	}`
+	w.Write([]byte(body))
+}
+
+func handleCreateContainer(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 201)
+	body := `{
+		"Id":"e90e34656806",
+		"Warnings":[]
+	}`
+	w.Write([]byte(body))
+}
+
+func handleStartContainer(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 204)
+}
+
+func catchAll(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 200)
+	w.Write([]byte("[]"))
 }
