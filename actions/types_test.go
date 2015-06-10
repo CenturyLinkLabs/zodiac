@@ -61,3 +61,8 @@ type mockComposer struct{}
 func (c *mockComposer) Run(args []string) error {
 	return nil
 }
+
+type capturedStartParams struct {
+	Name   string
+	Config dockerclient.ContainerConfig
+}
