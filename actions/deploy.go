@@ -16,7 +16,7 @@ func Deploy(c cluster.Cluster, options Options) (prettycli.Output, error) {
 
 	for _, endpoint := range c.Endpoints() {
 
-		reqs = collectRequests(endpoint, options.Args)
+		reqs = collectRequests(endpoint, options)
 
 		dm := DeploymentManifest{
 			Services:   []Service{},

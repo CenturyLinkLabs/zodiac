@@ -58,7 +58,7 @@ func (p mockProxy) DrainRequests() []cluster.ContainerRequest {
 
 type mockComposer struct{}
 
-func (c *mockComposer) Run(args []string) error {
+func (c *mockComposer) Run() error {
 	return nil
 }
 

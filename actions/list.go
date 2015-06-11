@@ -19,7 +19,7 @@ func List(c cluster.Cluster, options Options) (prettycli.Output, error) {
 
 	for _, endpoint := range c.Endpoints() {
 
-		reqs = collectRequests(endpoint, options.Args)
+		reqs = collectRequests(endpoint, options)
 		// Get most recent deployment's manifests
 		var manifests DeploymentManifests
 		for _, req := range reqs {

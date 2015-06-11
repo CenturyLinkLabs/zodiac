@@ -41,7 +41,7 @@ type Service struct {
 	ContainerConfig dockerclient.ContainerConfig
 }
 
-func collectRequests(endpoint cluster.Endpoint, args []string) []cluster.ContainerRequest {
+func collectRequests(endpoint cluster.Endpoint, options Options) []cluster.ContainerRequest {
 	// TODO: handle error
 	go DefaultProxy.Serve(endpoint)
 	// TODO: handle error
@@ -49,7 +49,7 @@ func collectRequests(endpoint cluster.Endpoint, args []string) []cluster.Contain
 
 	// TODO: handle error
 	// TODO: args not passed!
-	DefaultComposer.Run(args)
+	DefaultComposer.Run()
 	return DefaultProxy.DrainRequests()
 }
 

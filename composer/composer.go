@@ -8,7 +8,7 @@ import (
 )
 
 type Composer interface {
-	Run([]string) error
+	Run() error
 }
 
 type ExecComposer struct {
@@ -22,9 +22,10 @@ func (c *ExecComposer) DrainRequests(args []string) error {
 	return nil
 }
 
-func (c *ExecComposer) Run(args []string) error {
-	combinedArgs := append([]string{"up", "-d"}, args...)
-	cmd := exec.Command("docker-compose", combinedArgs...)
+func (c *ExecComposer) Run() error {
+	// TODO: implement --file functionality
+	composeArgs := []string{"up", "-d"}
+	cmd := exec.Command("docker-compose", composeArgs...)
 	// TODO: this port must match the proxy port, see related TODO in cluster/proxy.go
 	cmd.Env = []string{"DOCKER_HOST=localhost:3000"}
 	var out bytes.Buffer
