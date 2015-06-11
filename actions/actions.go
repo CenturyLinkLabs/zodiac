@@ -49,7 +49,7 @@ func collectRequests(endpoint cluster.Endpoint, options Options) []cluster.Conta
 
 	// TODO: handle error
 	// TODO: args not passed!
-	DefaultComposer.Run()
+	DefaultComposer.Run(options.Flags)
 	return DefaultProxy.DrainRequests()
 }
 

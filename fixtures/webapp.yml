@@ -1,5 +1,5 @@
 web:
-  image: example/webserver
+  image: centurylink/simple-server
 
 db:
-  image: example/database
+  image: centurylink/simple-server

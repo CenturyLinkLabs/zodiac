@@ -70,11 +70,11 @@ func TestDeploy_Successful(t *testing.T) {
 	s, endpointFlag := newFakeServerAndFlag()
 	defer s.Close()
 
-	r := b.Run(t, endpointFlag, "deploy")
+	r := b.Run(t, endpointFlag, "deploy", "-f", "fixtures/webapp.yml")
 	fmt.Println(r.Stderr())
 	fmt.Println(r.Stdout())
 	r.AssertSuccessful()
-	assert.Contains(t, r.Stdout(), "Successfully deployed 1 container(s)")
+	assert.Contains(t, r.Stdout(), "Successfully deployed 2 container(s)")
 	assert.Empty(t, r.Stderr())
 }
 
