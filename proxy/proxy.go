@@ -23,8 +23,6 @@ type HTTPProxy struct {
 }
 
 func NewHTTPProxy(listenAt string) *HTTPProxy {
-	// TODO: Implement. Don't have this do anything resource-intensive since it runs at init.
-
 	return &HTTPProxy{
 		containerRequests: make([]cluster.ContainerRequest, 0),
 	}
@@ -59,7 +57,6 @@ func catchAll(endpoint cluster.Endpoint, w http.ResponseWriter, r *http.Request)
 	r.URL.Host = endpoint.Host()
 	// TODO: we should give the scheme some thought
 	r.URL.Scheme = "http"
-	// log.Infof("Proxied %s", r.URL.String())
 	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
 	req.Header.Set("content-type", "application/json")
 	c := http.Client{}

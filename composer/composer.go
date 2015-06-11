@@ -15,7 +15,6 @@ type ExecComposer struct {
 }
 
 func NewExecComposer(dockerHost string) *ExecComposer {
-	// TODO: Implement. Don't have this do anything resource-intensive since it runs at init.
 	return &ExecComposer{}
 }
 
@@ -26,7 +25,7 @@ func (c *ExecComposer) DrainRequests(args []string) error {
 func (c *ExecComposer) Run(args []string) error {
 	combinedArgs := append([]string{"up", "-d"}, args...)
 	cmd := exec.Command("docker-compose", combinedArgs...)
-	// TODO: this port must match the proxy port
+	// TODO: this port must match the proxy port, see related TODO in cluster/proxy.go
 	cmd.Env = []string{"DOCKER_HOST=localhost:3000"}
 	var out bytes.Buffer
 	var errOut bytes.Buffer
