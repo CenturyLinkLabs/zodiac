@@ -16,6 +16,7 @@ checkout:
 
 dependencies:
   override:
+    - mkdir -p /home/ubuntu/.go_workspace/bin
     - curl -L https://github.com/docker/compose/releases/download/1.2.0/docker-compose-`uname -s`-`uname -m` > /home/ubuntu/.go_workspace/bin/docker-compose
 
     - chmod +x /home/ubuntu/.go_workspace/bin/docker-compose
@@ -28,6 +29,6 @@ test:
 
 deployment:
   qa:
-    branch: create
+    branch: master
     commands:
       - docker run -v $(pwd):/src centurylink/golang-builder:latest
