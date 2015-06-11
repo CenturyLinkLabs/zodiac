@@ -99,7 +99,7 @@ func TestRollback_Success(t *testing.T) {
 	assert.Equal(t, "oldService", mostRecentCall.Name)
 	assert.Equal(t, "oldimage", mostRecentCall.Config.Image)
 	assert.NotEmpty(t, mostRecentCall.Config.Labels["zodiacManifest"])
-	assert.Equal(t, "Successfully rolled back to 1 container(s)", o.ToPrettyOutput())
+	assert.Equal(t, "Successfully rolled back to deployment: 1", o.ToPrettyOutput())
 
 	dms := DeploymentManifests{}
 	err = json.Unmarshal([]byte(mostRecentCall.Config.Labels["zodiacManifest"]), &dms)

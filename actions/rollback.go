@@ -37,7 +37,7 @@ func Rollback(c cluster.Cluster, options Options) (prettycli.Output, error) {
 			return nil, errors.New("There are no previous deployments")
 		}
 
-		newDeployment, err := fetchTarget(manifests, options.Args)
+		newDeployment, deploymentID, err := fetchTarget(manifests, options.Args)
 		if err != nil {
 			return nil, err
 		}
@@ -54,13 +54,14 @@ func Rollback(c cluster.Cluster, options Options) (prettycli.Output, error) {
 		manifests[len(manifests)-1].DeployedAt = time.Now().Format(time.RFC3339)
 
 		startServices(newDeployment.Services, manifests, endpoint)
-	}
 
-	output := fmt.Sprintf("Successfully rolled back to %d container(s)", len(reqs))
-	return prettycli.PlainOutput{output}, nil
+		output := fmt.Sprintf("Successfully rolled back to deployment: %d", deploymentID)
+		return prettycli.PlainOutput{output}, nil
+	}
+	return prettycli.PlainOutput{"NEVER GONNA HAPPEND"}, nil
 }
 
-func fetchTarget(manifests DeploymentManifests, args []string) (DeploymentManifest, error) {
+func fetchTarget(manifests DeploymentManifests, args []string) (DeploymentManifest, int, error) {
 	var target int
 	if len(args) == 0 {
 		target = len(manifests) - 2
@@ -68,14 +69,14 @@ func fetchTarget(manifests DeploymentManifests, args []string) (DeploymentManife
 		var err error
 		target, err = strconv.Atoi(args[0])
 		if err != nil {
-			return DeploymentManifest{}, err
+			return DeploymentManifest{}, -1, err
 		}
 		target--
 	}
 
 	if (target < 0) || (target >= len(manifests)) {
-		return DeploymentManifest{}, errors.New("The specified index does not exist")
+		return DeploymentManifest{}, -1, errors.New("The specified index does not exist")
 	}
 
-	return manifests[target], nil
+	return manifests[target], target + 1, nil
 }
