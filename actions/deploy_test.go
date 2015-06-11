@@ -55,7 +55,7 @@ func TestDeploy_Success(t *testing.T) {
 		},
 	}
 
-	o, err := Deploy(c, nil)
+	o, err := Deploy(c, Options{})
 
 	assert.NoError(t, err)
 	assert.Len(t, startCalls, 1)

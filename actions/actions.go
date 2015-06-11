@@ -3,6 +3,7 @@ package actions
 import (
 	"encoding/json"
 
+	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/cluster"
 	"github.com/CenturyLinkLabs/zodiac/composer"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
@@ -20,6 +21,13 @@ func init() {
 	DefaultProxy = proxy.NewHTTPProxy(ProxyAddress)
 	DefaultComposer = composer.NewExecComposer(ProxyAddress)
 }
+
+type Options struct {
+	Args  []string
+	Flags map[string]string
+}
+
+type Zodiaction func(cluster.Cluster, Options) (prettycli.Output, error)
 
 type DeploymentManifests []DeploymentManifest
 

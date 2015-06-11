@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/actions"
 	"github.com/CenturyLinkLabs/zodiac/cluster"
 	log "github.com/Sirupsen/logrus"
@@ -44,10 +43,11 @@ func init() {
 			},
 		},
 		{
-			Name:   "rollback",
-			Usage:  "Rollback a deployment",
-			Action: createHandler(actions.Rollback),
-			Before: requireCluster,
+			Name:        "rollback",
+			Usage:       "rollback a deployment",
+			Description: "Specify the deployment ID as the argument to the rollback command. If the deployment ID is ommitted, the most recent deployment will be assumed",
+			Action:      createHandler(actions.Rollback),
+			Before:      requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "file, f",
@@ -124,11 +124,21 @@ func requireCluster(c *cli.Context) error {
 	return nil
 }
 
-type zodiaction func(cluster.Cluster, []string) (prettycli.Output, error)
-
-func createHandler(z zodiaction) func(c *cli.Context) {
+func createHandler(z actions.Zodiaction) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		o, err := z(endpoints, c.Args())
+		flags := map[string]string{}
+
+		//TODO: is this a codegangsta bug, GlobalFlagNames?
+		for _, flagName := range c.GlobalFlagNames() {
+			flags[flagName] = c.String(flagName)
+		}
+
+		actionOpts := actions.Options{
+			Args:  c.Args(),
+			Flags: flags,
+		}
+
+		o, err := z(endpoints, actionOpts)
 		if err != nil {
 			log.Fatal(err)
 		}

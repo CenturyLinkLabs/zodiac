@@ -75,7 +75,7 @@ func TestList_Success(t *testing.T) {
 		},
 	}
 
-	o, err := List(c, nil)
+	o, err := List(c, Options{})
 
 	output, _ := o.(prettycli.ListOutput)
 

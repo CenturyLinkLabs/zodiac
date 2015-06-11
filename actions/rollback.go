@@ -9,12 +9,12 @@ import (
 	"github.com/CenturyLinkLabs/zodiac/cluster"
 )
 
-func Rollback(c cluster.Cluster, args []string) (prettycli.Output, error) {
+func Rollback(c cluster.Cluster, options Options) (prettycli.Output, error) {
 	var reqs []cluster.ContainerRequest
 
 	for _, endpoint := range c.Endpoints() {
 
-		reqs = collectRequests(endpoint, args)
+		reqs = collectRequests(endpoint, options.Args)
 		// Get most recent deployment's manifests
 		var manifests DeploymentManifests
 		for _, req := range reqs {

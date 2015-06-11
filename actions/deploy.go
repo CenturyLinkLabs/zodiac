@@ -10,13 +10,13 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
-func Deploy(c cluster.Cluster, args []string) (prettycli.Output, error) {
+func Deploy(c cluster.Cluster, options Options) (prettycli.Output, error) {
 
 	var reqs []cluster.ContainerRequest
 
 	for _, endpoint := range c.Endpoints() {
 
-		reqs = collectRequests(endpoint, args)
+		reqs = collectRequests(endpoint, options.Args)
 
 		dm := DeploymentManifest{
 			Services:   []Service{},

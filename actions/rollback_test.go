@@ -82,7 +82,7 @@ func TestRollback_Success(t *testing.T) {
 		},
 	}
 
-	o, err := Rollback(c, nil)
+	o, err := Rollback(c, Options{})
 
 	assert.NoError(t, err)
 	assert.Len(t, startCalls, 1)
