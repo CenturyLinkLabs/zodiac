@@ -1,4 +1,3 @@
-foo:
-  image: centurylink/simple-server
-  ports:
-    - "8889:8888"
+reference:
+  image: "busybox:ubuntu-14.04"
+  entrypoint: /code/entrypoint.sh

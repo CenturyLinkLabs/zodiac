@@ -1,0 +1,57 @@
+reference:
+  image: "busybox:ubuntu-14.04"
+  command: some command
+  ports:
+    - "8000:8000"
+    - "127.0.0.1:8001:8001"
+    - "3000"
+  expose:
+    - "3000"
+  volumes:
+    - /var/lib/mysql
+    - "cache/:/tmp/cache"
+    - "~/configs:/etc/configs/:ro"
+  environment:
+    RACK_ENV: development
+    SESSION_SECRET:
+    PASSWORD: some:val=ue$$2015&&*
+  env_file:
+    - .env
+  dns:
+    - 8.8.8.8
+    - 9.9.9.9
+  cap_add:
+    - ALL
+  cap_drop:
+    - NET_ADMIN
+    - SYS_ADMIN
+  dns_search:
+    - dc1.example.com
+    - dc2.example.com
+  cpu_shares: "10"
+  domainname: foo.com
+  entrypoint: /code/entrypoint.sh
+  hostname: foo
+  mem_limit: "1000000000"
+  privileged: "true"
+  restart: always
+  stdin_open: "true"
+  tty: "true"
+  user: foobar
+  working_dir: /my/working/dir
+ref2:
+  build: /data/hub-collector
+  command:
+    - foo
+    - param1
+    - param2
+  links:
+    - "reference:ref1"
+  net: "container:reference"
+  external_links:
+    - "project_db_1:postgresql"
+    - "project_db_1:mysql"
+  environment:
+    - RACK_ENV=development
+    - SESSION_SECRET=
+    - PASSWORD=someval=ue$$2015&&*

@@ -1,0 +1,16 @@
+foo:
+  image: centurylink/simple-server
+  ports:
+    - "8889:8888"
+  links:
+    - "bar:bar"
+bar:
+  image: centurylink/simple-server
+  ports:
+    - "8887:8888"
+  links:
+    - "foo2:foo2"
+foo2:
+  image: centurylink/simple-server
+  ports:
+    - "8886:8888"

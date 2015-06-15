@@ -2,6 +2,7 @@ package composer
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 
 	log "github.com/Sirupsen/logrus"
@@ -39,6 +40,8 @@ func (c *ExecComposer) Run(flags map[string]string) error {
 	cmd.Stdout = &out
 	cmd.Stderr = &errOut
 	err := cmd.Run()
+	fmt.Println(cmd.Stderr)
+	fmt.Println(cmd.Stdout)
 
 	log.Info("docker-compose stdout: ", out.String())
 	if err != nil {

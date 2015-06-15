@@ -34,7 +34,9 @@ func (p *HTTPProxy) Serve(endpoint cluster.Endpoint) error {
 	r.Path("/v1.15/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
 	r.Path("/v1.15/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
 	r.Path("/v1.15/containers/json").Methods("GET").HandlerFunc(p.listAll)
-
+	r.Path("/{rest:.*}").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		catchAll(endpoint, w, r)
+	})
 	// TODO: port should be configurable
 	laddr, _ := net.ResolveTCPAddr("tcp", "localhost:3000")
 	listener, _ := net.ListenTCP("tcp", laddr)
@@ -84,6 +86,11 @@ func (p *HTTPProxy) start(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(204)
 }
 
+func (p *HTTPProxy) delete(w http.ResponseWriter, r *http.Request) {
+	log.Infof("DELETE request to %s", r.URL)
+	w.WriteHeader(204)
+}
+
 func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
 	log.Infof("LIST ALL request to %s", r.URL)
 
@@ -99,4 +106,35 @@ func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
 
 	j, _ := json.Marshal(containers)
 	w.Write(j)
+}
+
+func catchAll(endpoint cluster.Endpoint, w http.ResponseWriter, r *http.Request) {
+	log.Infof("unhandled request to %s", r.URL)
+
+	log.Debugf("Logging request HEADERs")
+	for k, v := range r.Header {
+		log.Debugf(k, v)
+	}
+
+	r.URL.Host = endpoint.Host()
+	// TODO: we should give the scheme some thought
+	r.URL.Scheme = "http"
+	// log.Infof("Proxied %s", r.URL.String())
+	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
+	req.Header.Set("content-type", "application/json")
+	c := http.Client{}
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+	resp.Header.Set("content-type", "application/json")
+
+	log.Debugf("Logging RESPONSE HEADERs")
+	for k, v := range resp.Header {
+		log.Debugf(k, v)
+	}
+
+	// TODO, is there a better way?
+	respBody, _ := ioutil.ReadAll(resp.Body)
+	fmt.Fprintf(w, string(respBody))
 }

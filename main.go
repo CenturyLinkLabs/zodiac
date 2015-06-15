@@ -99,6 +99,7 @@ func initializeCLI(c *cli.Context) error {
 	if c.GlobalBool("debug") {
 		log.SetLevel(log.DebugLevel)
 	}
+	log.SetLevel(log.DebugLevel)
 
 	return nil
 }
