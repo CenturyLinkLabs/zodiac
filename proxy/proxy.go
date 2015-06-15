@@ -1,6 +1,7 @@
 package proxy
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -9,6 +10,7 @@ import (
 	"github.com/CenturyLinkLabs/zodiac/cluster"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
+	"github.com/samalba/dockerclient"
 )
 
 type Proxy interface {
@@ -60,8 +62,10 @@ func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
 		//TODO: return errors to compose
 	}
 
+	name := r.URL.Query()["name"][0]
+
 	req := cluster.ContainerRequest{
-		Name:          r.URL.Query()["name"][0],
+		Name:          name,
 		CreateOptions: body,
 	}
 
@@ -81,6 +85,18 @@ func (p *HTTPProxy) start(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
-	log.Infof("INSPECT request to %s", r.URL)
-	fmt.Fprintf(w, `[]`)
+	log.Infof("LIST ALL request to %s", r.URL)
+
+	containers := []dockerclient.Container{}
+
+	for _, req := range p.containerRequests {
+		containerInfo := dockerclient.Container{
+			Image: req.Config.Image,
+			Names: []string{req.Name},
+		}
+		containers = append(containers, containerInfo)
+	}
+
+	j, _ := json.Marshal(containers)
+	w.Write(j)
 }
