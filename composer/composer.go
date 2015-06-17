@@ -23,10 +23,11 @@ func (c *ExecComposer) DrainRequests(args []string) error {
 }
 
 func (c *ExecComposer) Run(flags map[string]string) error {
-	// TODO: implement --file functionality
-
 	composeArgs := []string{"up", "-d"}
 	for key, value := range flags {
+		if key == "name" {
+			composeArgs = append([]string{"-p", value}, composeArgs...)
+		}
 		if key == "file" {
 			composeArgs = append([]string{"-f", value}, composeArgs...)
 		}

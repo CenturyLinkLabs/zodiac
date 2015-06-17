@@ -36,6 +36,11 @@ func init() {
 			Before: requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
+					Name:  "name, n",
+					Usage: "Specify a custom project name",
+					Value: "zodiac",
+				},
+				cli.StringFlag{
 					Name:  "file, f",
 					Usage: "Specify an alternate compose file",
 					Value: "docker-compose.yml",
@@ -50,6 +55,11 @@ func init() {
 			Before:      requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
+					Name:  "name, n",
+					Usage: "Specify a custom project name",
+					Value: "zodiac",
+				},
+				cli.StringFlag{
 					Name:  "file, f",
 					Usage: "Specify an alternate compose file",
 					Value: "docker-compose.yml",
@@ -62,6 +72,11 @@ func init() {
 			Action: createHandler(actions.List),
 			Before: requireCluster,
 			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "name, n",
+					Usage: "Specify a custom project name",
+					Value: "zodiac",
+				},
 				cli.StringFlag{
 					Name:  "file, f",
 					Usage: "Specify an alternate compose file",
