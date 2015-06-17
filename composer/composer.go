@@ -18,10 +18,6 @@ func NewExecComposer(dockerHost string) *ExecComposer {
 	return &ExecComposer{}
 }
 
-func (c *ExecComposer) DrainRequests(args []string) error {
-	return nil
-}
-
 func (c *ExecComposer) Run(flags map[string]string) error {
 	composeArgs := []string{"up", "-d"}
 	for key, value := range flags {

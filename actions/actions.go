@@ -47,7 +47,7 @@ func collectRequests(options Options) []proxy.ContainerRequest {
 	// TODO: handle error
 	// TODO: args not passed!
 	DefaultComposer.Run(options.Flags)
-	return DefaultProxy.DrainRequests()
+	return DefaultProxy.GetRequests()
 }
 
 func startServices(services []Service, manifests DeploymentManifests, endpoint Endpoint) error {

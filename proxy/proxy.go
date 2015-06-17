@@ -21,7 +21,7 @@ type ContainerRequest struct {
 type Proxy interface {
 	Serve() error
 	Stop() error
-	DrainRequests() []ContainerRequest
+	GetRequests() []ContainerRequest
 }
 
 type HTTPProxy struct {
@@ -40,7 +40,6 @@ func (p *HTTPProxy) Serve() error {
 	r.Path("/v1.15/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
 	r.Path("/v1.15/containers/json").Methods("GET").HandlerFunc(p.listAll)
 
-	// TODO: port should be configurable
 	laddr, _ := net.ResolveTCPAddr("tcp", "localhost:61908")
 	listener, _ := net.ListenTCP("tcp", laddr)
 	p.listener = listener
@@ -52,10 +51,8 @@ func (p *HTTPProxy) Stop() error {
 	return nil
 }
 
-func (p *HTTPProxy) DrainRequests() []ContainerRequest {
+func (p *HTTPProxy) GetRequests() []ContainerRequest {
 	// TODO maybe drain errors through this method as well
-	// TODO implement, and don't forget that this is supposed to 'drain', as in
-	// remove the saved requests that this instance has.
 	return p.containerRequests
 }
 

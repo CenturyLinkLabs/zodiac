@@ -52,7 +52,7 @@ func (p mockProxy) Stop() error {
 	return nil
 }
 
-func (p mockProxy) DrainRequests() []proxy.ContainerRequest {
+func (p mockProxy) GetRequests() []proxy.ContainerRequest {
 	return p.requests
 }
 
