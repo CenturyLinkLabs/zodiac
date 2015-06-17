@@ -36,7 +36,7 @@ func (p *HTTPProxy) Serve(endpoint cluster.Endpoint) error {
 	r.Path("/v1.15/containers/json").Methods("GET").HandlerFunc(p.listAll)
 
 	// TODO: port should be configurable
-	laddr, _ := net.ResolveTCPAddr("tcp", "localhost:3000")
+	laddr, _ := net.ResolveTCPAddr("tcp", "localhost:61908")
 	listener, _ := net.ListenTCP("tcp", laddr)
 	p.listener = listener
 	return http.Serve(listener, r)

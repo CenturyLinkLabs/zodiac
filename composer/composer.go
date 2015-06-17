@@ -33,8 +33,7 @@ func (c *ExecComposer) Run(flags map[string]string) error {
 		}
 	}
 	cmd := exec.Command("docker-compose", composeArgs...)
-	// TODO: this port must match the proxy port, see related TODO in cluster/proxy.go
-	cmd.Env = []string{"DOCKER_HOST=localhost:3000"}
+	cmd.Env = []string{"DOCKER_HOST=localhost:61908"}
 	var out bytes.Buffer
 	var errOut bytes.Buffer
 	cmd.Stdout = &out
