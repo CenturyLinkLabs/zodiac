@@ -76,7 +76,6 @@ func (e *DockerEndpoint) ResolveImage(name string) (string, error) {
 	if err != nil {
 
 		if err == dockerclient.ErrNotFound {
-			// TODO: authenticaion?
 			if err := e.client.PullImage(name, nil); err != nil {
 				return "", err
 			}

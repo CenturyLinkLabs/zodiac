@@ -52,7 +52,7 @@ func (p *HTTPProxy) Stop() error {
 }
 
 func (p *HTTPProxy) GetRequests() []ContainerRequest {
-	// TODO maybe drain errors through this method as well
+	// TODO maybe return errors through this method as well
 	return p.containerRequests
 }
 

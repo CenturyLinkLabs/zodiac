@@ -13,8 +13,6 @@ import (
 
 var b *clitest.BuildTester
 
-// TODO look into making the build only happen on demand? And just SkipNow when
-// you call Run if Short()? Configurable.
 func setup(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -77,18 +75,3 @@ func TestDeploy_Successful(t *testing.T) {
 	assert.Contains(t, r.Stdout(), "Successfully deployed 2 container(s)")
 	assert.Empty(t, r.Stderr())
 }
-
-//func TestDeploy_ExplicitComposeYmlSuccessful(t *testing.T) {
-//setup(t)
-//s, endpointFlag := newFakeServerAndFlag()
-//defer s.Close()
-
-//r := b.Run(t, endpointFlag, "deploy", "-f", "fixtures/webapp.yml")
-//r.AssertSuccessful()
-//assert.Contains(t, r.Stdout(), "Successfully deployed 2 container(s)")
-//assert.Empty(t, r.Stderr())
-//}
-
-// TODO: fail the tests immediately if compose can't be found. For now at least.
-// TODO: test arguments to compose
-// TODO: test error from compose

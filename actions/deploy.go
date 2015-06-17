@@ -47,7 +47,6 @@ func Deploy(options Options) (prettycli.Output, error) {
 		if err == nil {
 			err := endpoint.RemoveContainer(svc.Name)
 			if err != nil {
-				//TODO: figure out if we really want to abort here
 				return nil, err
 			}
 		}

@@ -45,7 +45,6 @@ func collectRequests(options Options) []proxy.ContainerRequest {
 	defer DefaultProxy.Stop()
 
 	// TODO: handle error
-	// TODO: args not passed!
 	DefaultComposer.Run(options.Flags)
 	return DefaultProxy.GetRequests()
 }
