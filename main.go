@@ -33,6 +33,10 @@ func init() {
 			Before: requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
+					Name:  "message, m",
+					Usage: "Give your deployment a comment",
+				},
+				cli.StringFlag{
 					Name:  "name, n",
 					Usage: "Specify a custom project name",
 					Value: "zodiac",

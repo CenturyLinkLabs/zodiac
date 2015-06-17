@@ -33,6 +33,7 @@ type DeploymentManifests []DeploymentManifest
 type DeploymentManifest struct {
 	Services   []Service
 	DeployedAt string
+	Message    string
 }
 
 type Service struct {

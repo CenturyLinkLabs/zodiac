@@ -17,7 +17,7 @@ func List(options Options) (prettycli.Output, error) {
 	}
 
 	output := prettycli.ListOutput{
-		Labels: []string{"ID", "Deploy Date", "Services"},
+		Labels: []string{"ID", "Deploy Date", "Services", "Message"},
 	}
 
 	reqs := collectRequests(options)
@@ -49,6 +49,7 @@ func List(options Options) (prettycli.Output, error) {
 			"ID":          strconv.Itoa(i + 1),
 			"Deploy Date": mani.DeployedAt,
 			"Services":    strings.Join(serviceList, ", "),
+			"Message":     mani.Message,
 		})
 	}
 

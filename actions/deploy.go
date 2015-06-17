@@ -22,6 +22,7 @@ func Deploy(options Options) (prettycli.Output, error) {
 	dm := DeploymentManifest{
 		Services:   []Service{},
 		DeployedAt: time.Now().Format(time.RFC3339),
+		Message:    options.Flags["message"],
 	}
 
 	for _, req := range reqs {

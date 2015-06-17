@@ -35,6 +35,7 @@ func TestList_Success(t *testing.T) {
 		},
 		{
 			DeployedAt: "yesterday",
+			Message:    "initial release",
 			Services: []Service{
 				{
 					Name:            "newService",
@@ -82,7 +83,7 @@ func TestList_Success(t *testing.T) {
 	output, _ := o.(prettycli.ListOutput)
 
 	assert.NoError(t, err)
-	assert.Len(t, output.Labels, 3)
+	assert.Len(t, output.Labels, 4)
 	assert.Len(t, output.Rows, 2)
 	assert.Equal(t, "ID", output.Labels[0])
 	assert.Equal(t, "Deploy Date", output.Labels[1])
@@ -90,4 +91,5 @@ func TestList_Success(t *testing.T) {
 	assert.Equal(t, "2", output.Rows[0]["ID"])
 	assert.Equal(t, "yesterday", output.Rows[0]["Deploy Date"])
 	assert.Equal(t, "newService, Another service", output.Rows[0]["Services"])
+	assert.Equal(t, "initial release", output.Rows[0]["Message"])
 }
