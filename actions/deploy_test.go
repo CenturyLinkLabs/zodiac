@@ -5,7 +5,7 @@ import (
 	_ "fmt"
 	"testing"
 
-	"github.com/CenturyLinkLabs/zodiac/cluster"
+	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/assert"
 )
@@ -30,7 +30,7 @@ func TestDeploy_Success(t *testing.T) {
 	var resolveArgs []string
 
 	DefaultProxy = &mockProxy{
-		requests: []cluster.ContainerRequest{
+		requests: []proxy.ContainerRequest{
 			{
 				Name:          "zodiac_foo_1",
 				CreateOptions: []byte(`{"Image": "zodiac"}`),
@@ -39,23 +39,25 @@ func TestDeploy_Success(t *testing.T) {
 	}
 	DefaultComposer = &mockComposer{}
 
-	c := cluster.HardcodedCluster{
-		mockDeployEndpoint{
-			startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
-				startCalls = append(startCalls, capturedStartParams{
-					Name:   nm,
-					Config: cfg,
-				})
-				return nil
-			},
-			resolveImageCallback: func(imgNm string) (string, error) {
-				resolveArgs = append(resolveArgs, imgNm)
-				return "xyz321", nil
-			},
+	e := mockDeployEndpoint{
+		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+			startCalls = append(startCalls, capturedStartParams{
+				Name:   nm,
+				Config: cfg,
+			})
+			return nil
+		},
+		resolveImageCallback: func(imgNm string) (string, error) {
+			resolveArgs = append(resolveArgs, imgNm)
+			return "xyz321", nil
 		},
 	}
 
-	o, err := Deploy(c, Options{})
+	endpointFactory = func(string) (Endpoint, error) {
+		return e, nil
+	}
+
+	o, err := Deploy(Options{})
 
 	assert.NoError(t, err)
 	assert.Len(t, startCalls, 1)

@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/CenturyLinkLabs/prettycli"
-	"github.com/CenturyLinkLabs/zodiac/cluster"
+	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/assert"
 )
@@ -58,7 +58,7 @@ func TestList_Success(t *testing.T) {
 	}
 
 	DefaultProxy = &mockProxy{
-		requests: []cluster.ContainerRequest{
+		requests: []proxy.ContainerRequest{
 			{
 				Name:          "zodiac_foo_1",
 				CreateOptions: []byte(`{"Image": "zodiac"}`),
@@ -67,15 +67,17 @@ func TestList_Success(t *testing.T) {
 	}
 	DefaultComposer = &mockComposer{}
 
-	c := cluster.HardcodedCluster{
-		mockListEndpoint{
-			inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
-				return &ci, nil
-			},
+	e := mockListEndpoint{
+		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
+			return &ci, nil
 		},
 	}
 
-	o, err := List(c, Options{})
+	endpointFactory = func(string) (Endpoint, error) {
+		return e, nil
+	}
+
+	o, err := List(Options{})
 
 	output, _ := o.(prettycli.ListOutput)
 

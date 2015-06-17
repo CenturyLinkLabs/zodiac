@@ -5,7 +5,7 @@ import (
 	_ "fmt"
 	"testing"
 
-	"github.com/CenturyLinkLabs/zodiac/cluster"
+	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/assert"
 )
@@ -67,7 +67,7 @@ func TestRollback_Success(t *testing.T) {
 	}
 
 	DefaultProxy = &mockProxy{
-		requests: []cluster.ContainerRequest{
+		requests: []proxy.ContainerRequest{
 			{
 				Name:          "zodiac_foo_1",
 				CreateOptions: []byte(`{"Image": "zodiac"}`),
@@ -76,22 +76,24 @@ func TestRollback_Success(t *testing.T) {
 	}
 	DefaultComposer = &mockComposer{}
 
-	c := cluster.HardcodedCluster{
-		mockRollbackEndpoint{
-			inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
-				return &ci, nil
-			},
-			startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
-				startCalls = append(startCalls, capturedStartParams{
-					Name:   nm,
-					Config: cfg,
-				})
-				return nil
-			},
+	e := mockRollbackEndpoint{
+		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
+			return &ci, nil
+		},
+		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+			startCalls = append(startCalls, capturedStartParams{
+				Name:   nm,
+				Config: cfg,
+			})
+			return nil
 		},
 	}
 
-	o, err := Rollback(c, Options{})
+	endpointFactory = func(string) (Endpoint, error) {
+		return e, nil
+	}
+
+	o, err := Rollback(Options{})
 
 	assert.NoError(t, err)
 	assert.Len(t, startCalls, 1)
@@ -143,7 +145,7 @@ func TestRollbackWithID_Success(t *testing.T) {
 	}
 
 	DefaultProxy = &mockProxy{
-		requests: []cluster.ContainerRequest{
+		requests: []proxy.ContainerRequest{
 			{
 				Name:          "zodiac_foo_1",
 				CreateOptions: []byte(`{"Image": "zodiac"}`),
@@ -152,22 +154,24 @@ func TestRollbackWithID_Success(t *testing.T) {
 	}
 	DefaultComposer = &mockComposer{}
 
-	c := cluster.HardcodedCluster{
-		mockRollbackEndpoint{
-			inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
-				return &ci, nil
-			},
-			startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
-				startCalls = append(startCalls, capturedStartParams{
-					Name:   nm,
-					Config: cfg,
-				})
-				return nil
-			},
+	e := mockRollbackEndpoint{
+		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
+			return &ci, nil
+		},
+		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+			startCalls = append(startCalls, capturedStartParams{
+				Name:   nm,
+				Config: cfg,
+			})
+			return nil
 		},
 	}
 
-	_, err := Rollback(c, Options{
+	endpointFactory = func(string) (Endpoint, error) {
+		return e, nil
+	}
+
+	_, err := Rollback(Options{
 		Args: []string{"1"},
 	})
 
@@ -203,7 +207,7 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 	}
 
 	DefaultProxy = &mockProxy{
-		requests: []cluster.ContainerRequest{
+		requests: []proxy.ContainerRequest{
 			{
 				Name:          "zodiac_foo_1",
 				CreateOptions: []byte(`{"Image": "zodiac"}`),
@@ -212,26 +216,28 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 	}
 	DefaultComposer = &mockComposer{}
 
-	c := cluster.HardcodedCluster{
-		mockRollbackEndpoint{
-			inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
-				return &ci, nil
-			},
-			startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
-				startCalls = append(startCalls, capturedStartParams{
-					Name:   nm,
-					Config: cfg,
-				})
-				return nil
-			},
-			removeCallback: func(nm string) error {
-				removeCalls = append(removeCalls, nm)
-				return nil
-			},
+	e := mockRollbackEndpoint{
+		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
+			return &ci, nil
+		},
+		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+			startCalls = append(startCalls, capturedStartParams{
+				Name:   nm,
+				Config: cfg,
+			})
+			return nil
+		},
+		removeCallback: func(nm string) error {
+			removeCalls = append(removeCalls, nm)
+			return nil
 		},
 	}
 
-	_, err := Rollback(c, Options{})
+	endpointFactory = func(string) (Endpoint, error) {
+		return e, nil
+	}
+
+	_, err := Rollback(Options{})
 
 	assert.EqualError(t, err, "There are no previous deployments")
 	assert.Len(t, startCalls, 0)
@@ -271,7 +277,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 	}
 
 	DefaultProxy = &mockProxy{
-		requests: []cluster.ContainerRequest{
+		requests: []proxy.ContainerRequest{
 			{
 				Name:          "zodiac_foo_1",
 				CreateOptions: []byte(`{"Image": "zodiac"}`),
@@ -280,26 +286,28 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 	}
 	DefaultComposer = &mockComposer{}
 
-	c := cluster.HardcodedCluster{
-		mockRollbackEndpoint{
-			inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
-				return &ci, nil
-			},
-			startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
-				startCalls = append(startCalls, capturedStartParams{
-					Name:   nm,
-					Config: cfg,
-				})
-				return nil
-			},
-			removeCallback: func(nm string) error {
-				removeCalls = append(removeCalls, nm)
-				return nil
-			},
+	e := mockRollbackEndpoint{
+		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
+			return &ci, nil
+		},
+		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+			startCalls = append(startCalls, capturedStartParams{
+				Name:   nm,
+				Config: cfg,
+			})
+			return nil
+		},
+		removeCallback: func(nm string) error {
+			removeCalls = append(removeCalls, nm)
+			return nil
 		},
 	}
 
-	_, err := Rollback(c, Options{
+	endpointFactory = func(string) (Endpoint, error) {
+		return e, nil
+	}
+
+	_, err := Rollback(Options{
 		Args: []string{"3"},
 	})
 

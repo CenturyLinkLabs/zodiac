@@ -4,27 +4,30 @@ import (
 	"fmt"
 
 	"github.com/CenturyLinkLabs/prettycli"
-	"github.com/CenturyLinkLabs/zodiac/cluster"
 	log "github.com/Sirupsen/logrus"
 	"github.com/blang/semver"
 )
 
 var RequredAPIVersion = semver.MustParse("1.6.0")
 
-func Verify(c cluster.Cluster, options Options) (prettycli.Output, error) {
-	for _, e := range c.Endpoints() {
-		log.Infof("validating endpoint %s", e.Name())
+func Verify(options Options) (prettycli.Output, error) {
 
-		if err := verifyEndpoint(e); err != nil {
-			return prettycli.PlainOutput{}, err
-		}
+	endpoint, err := endpointFactory(options.Flags["endpoint"])
+	if err != nil {
+		return nil, err
 	}
 
-	s := fmt.Sprintf("Successfully verified %d endpoint(s)!", len(c.Endpoints()))
+	log.Infof("validating endpoint %s", endpoint.Name())
+
+	if err := verifyEndpoint(endpoint); err != nil {
+		return prettycli.PlainOutput{}, err
+	}
+
+	s := fmt.Sprintf("Successfully verified endpoint: %s", endpoint.Name())
 	return prettycli.PlainOutput{s}, nil
 }
 
-func verifyEndpoint(e cluster.Endpoint) error {
+func verifyEndpoint(e Endpoint) error {
 	version, err := e.Version()
 	if err != nil {
 		return err

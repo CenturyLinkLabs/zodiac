@@ -32,7 +32,7 @@ func newFakeServerAndFlag() (*httptest.Server, string) {
 	if len(elements) != 3 {
 		panic("there was a problem with the test server!")
 	}
-	flag := fmt.Sprintf(`--cluster=tcp://localhost:%s`, elements[2])
+	flag := fmt.Sprintf(`--endpoint=tcp://localhost:%s`, elements[2])
 
 	return s, flag
 }
@@ -52,7 +52,7 @@ func TestVerify_Successful(t *testing.T) {
 
 	r := b.Run(t, endpointFlag, "verify")
 	r.AssertSuccessful()
-	assert.Contains(t, r.Stdout(), "Successfully verified 1 endpoint(s)")
+	assert.Contains(t, r.Stdout(), "Successfully verified endpoint:")
 	assert.Empty(t, r.Stderr())
 }
 
@@ -61,7 +61,7 @@ func TestVerify_NoCluster(t *testing.T) {
 
 	r := b.Run(t, "verify")
 	r.AssertExitCode(1)
-	assert.Contains(t, r.Stderr(), "specify a cluster")
+	assert.Contains(t, r.Stderr(), "specify a Docker endpoint")
 	assert.Empty(t, r.Stdout())
 }
 

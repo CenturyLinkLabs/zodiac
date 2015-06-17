@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/CenturyLinkLabs/zodiac/actions"
-	"github.com/CenturyLinkLabs/zodiac/cluster"
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 )
@@ -15,8 +13,7 @@ import (
 const version = "0.0.1"
 
 var (
-	commands  []cli.Command
-	endpoints cluster.HardcodedCluster
+	commands []cli.Command
 )
 
 func init() {
@@ -25,7 +22,7 @@ func init() {
 	commands = []cli.Command{
 		{
 			Name:   "verify",
-			Usage:  "Verify the cluster",
+			Usage:  "Verify the endpoint",
 			Action: createHandler(actions.Verify),
 			Before: requireCluster,
 		},
@@ -101,9 +98,9 @@ func main() {
 			Usage: "Enable verbose logging",
 		},
 		cli.StringFlag{
-			Name:   "cluster",
-			Usage:  "Use a comma-separated list of Docker endpoints",
-			EnvVar: "ZODIAC_CLUSTER",
+			Name:   "endpoint",
+			Usage:  "Docker endpoint",
+			EnvVar: "ZODIAC_DOCKER_ENDPOINT",
 		},
 	}
 
@@ -119,21 +116,11 @@ func initializeCLI(c *cli.Context) error {
 }
 
 func requireCluster(c *cli.Context) error {
-	arg := c.GlobalString("cluster")
+	arg := c.GlobalString("endpoint")
 	if arg == "" {
-		err := errors.New("you must specify a cluster to connect to")
+		err := errors.New("you must specify a Docker endpoint to connect to")
 		log.Error(err)
 		return err
-	}
-
-	endpoints = cluster.HardcodedCluster{}
-	for _, host := range strings.Split(arg, ",") {
-		c, err := cluster.NewDockerEndpoint(host)
-		if err != nil {
-			log.Fatalf("there was a problem with endpoint '%s': %s", host, err)
-		}
-
-		endpoints = append(endpoints, c)
 	}
 
 	return nil
@@ -147,13 +134,14 @@ func createHandler(z actions.Zodiaction) func(c *cli.Context) {
 		for _, flagName := range c.GlobalFlagNames() {
 			flags[flagName] = c.String(flagName)
 		}
+		flags["endpoint"] = c.GlobalString("endpoint")
 
 		actionOpts := actions.Options{
 			Args:  c.Args(),
 			Flags: flags,
 		}
 
-		o, err := z(endpoints, actionOpts)
+		o, err := z(actionOpts)
 		if err != nil {
 			log.Fatal(err)
 		}

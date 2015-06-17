@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 
 	"github.com/CenturyLinkLabs/prettycli"
-	"github.com/CenturyLinkLabs/zodiac/cluster"
 	"github.com/CenturyLinkLabs/zodiac/composer"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/samalba/dockerclient"
@@ -27,7 +26,7 @@ type Options struct {
 	Flags map[string]string
 }
 
-type Zodiaction func(cluster.Cluster, Options) (prettycli.Output, error)
+type Zodiaction func(Options) (prettycli.Output, error)
 
 type DeploymentManifests []DeploymentManifest
 
@@ -41,10 +40,8 @@ type Service struct {
 	ContainerConfig dockerclient.ContainerConfig
 }
 
-func collectRequests(endpoint cluster.Endpoint, options Options) []cluster.ContainerRequest {
-	// TODO: handle error
-	go DefaultProxy.Serve(endpoint)
-	// TODO: handle error
+func collectRequests(options Options) []proxy.ContainerRequest {
+	go DefaultProxy.Serve()
 	defer DefaultProxy.Stop()
 
 	// TODO: handle error
@@ -53,7 +50,7 @@ func collectRequests(endpoint cluster.Endpoint, options Options) []cluster.Conta
 	return DefaultProxy.DrainRequests()
 }
 
-func startServices(services []Service, manifests DeploymentManifests, endpoint cluster.Endpoint) error {
+func startServices(services []Service, manifests DeploymentManifests, endpoint Endpoint) error {
 	manifestsBlob, err := json.Marshal(manifests)
 	if err != nil {
 		return err

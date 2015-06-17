@@ -1,4 +1,4 @@
-package cluster
+package actions
 
 import (
 	"net/url"
@@ -7,18 +7,36 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
+var (
+	endpointFactory EndpointFactory
+)
+
+func init() {
+	endpointFactory = func(dockerHost string) (Endpoint, error) {
+		c, err := dockerclient.NewDockerClient(dockerHost, nil)
+		if err != nil {
+			return nil, err
+		}
+
+		return &DockerEndpoint{url: dockerHost, client: c}, nil
+	}
+}
+
+type EndpointFactory func(string) (Endpoint, error)
+
+type Endpoint interface {
+	Version() (string, error)
+	Name() string
+	Host() string
+	ResolveImage(string) (string, error)
+	StartContainer(name string, cc dockerclient.ContainerConfig) error
+	InspectContainer(name string) (*dockerclient.ContainerInfo, error)
+	RemoveContainer(name string) error
+}
+
 type DockerEndpoint struct {
 	url    string
 	client dockerclient.Client
-}
-
-func NewDockerEndpoint(dockerHost string) (*DockerEndpoint, error) {
-	c, err := dockerclient.NewDockerClient(dockerHost, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return &DockerEndpoint{url: dockerHost, client: c}, nil
 }
 
 func (e *DockerEndpoint) Host() string {
@@ -82,21 +100,3 @@ func (e *DockerEndpoint) RemoveContainer(name string) error {
 	//TODO: be more graceful
 	return e.client.RemoveContainer(name, true, false)
 }
-
-//func (e *DockerEndpoint) StartContainers(requests []ContainerRequest) error {
-//for _, req := range requests {
-//client, err := dockerclient.NewDockerClient(e.Name(), nil)
-
-//id, err := client.CreateContainer(&cc, req.Name)
-//if err != nil {
-//log.Fatalf("Problem creating container: ", err)
-//}
-
-//log.Infof("%s created as %s", req.Name, id)
-
-//if err := client.StartContainer(id, &dockerclient.HostConfig{}); err != nil {
-//log.Fatal("problem starting: ", err)
-//}
-//}
-//return nil
-//}

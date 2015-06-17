@@ -1,7 +1,7 @@
 package actions
 
 import (
-	"github.com/CenturyLinkLabs/zodiac/cluster"
+	"github.com/CenturyLinkLabs/zodiac/proxy"
 	log "github.com/Sirupsen/logrus"
 	"github.com/samalba/dockerclient"
 )
@@ -41,10 +41,10 @@ func (e mockEndpoint) Version() (string, error) {
 }
 
 type mockProxy struct {
-	requests []cluster.ContainerRequest
+	requests []proxy.ContainerRequest
 }
 
-func (p mockProxy) Serve(ep cluster.Endpoint) error {
+func (p mockProxy) Serve() error {
 	return nil
 }
 
@@ -52,7 +52,7 @@ func (p mockProxy) Stop() error {
 	return nil
 }
 
-func (p mockProxy) DrainRequests() []cluster.ContainerRequest {
+func (p mockProxy) DrainRequests() []proxy.ContainerRequest {
 	return p.requests
 }
 

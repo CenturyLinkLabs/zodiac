@@ -7,20 +7,25 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/CenturyLinkLabs/zodiac/cluster"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/samalba/dockerclient"
 )
 
+type ContainerRequest struct {
+	Name          string
+	CreateOptions []byte
+	Config        dockerclient.ContainerConfig
+}
+
 type Proxy interface {
-	Serve(cluster.Endpoint) error
+	Serve() error
 	Stop() error
-	DrainRequests() []cluster.ContainerRequest
+	DrainRequests() []ContainerRequest
 }
 
 type HTTPProxy struct {
-	containerRequests []cluster.ContainerRequest
+	containerRequests []ContainerRequest
 	listener          *net.TCPListener
 }
 
@@ -28,7 +33,7 @@ func NewHTTPProxy(listenAt string) *HTTPProxy {
 	return &HTTPProxy{}
 }
 
-func (p *HTTPProxy) Serve(endpoint cluster.Endpoint) error {
+func (p *HTTPProxy) Serve() error {
 	r := mux.NewRouter()
 	r.Path("/v1.15/containers/create").Methods("POST").HandlerFunc(p.create)
 	r.Path("/v1.15/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
@@ -47,7 +52,7 @@ func (p *HTTPProxy) Stop() error {
 	return nil
 }
 
-func (p *HTTPProxy) DrainRequests() []cluster.ContainerRequest {
+func (p *HTTPProxy) DrainRequests() []ContainerRequest {
 	// TODO maybe drain errors through this method as well
 	// TODO implement, and don't forget that this is supposed to 'drain', as in
 	// remove the saved requests that this instance has.
@@ -64,7 +69,7 @@ func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
 
 	name := r.URL.Query()["name"][0]
 
-	req := cluster.ContainerRequest{
+	req := ContainerRequest{
 		Name:          name,
 		CreateOptions: body,
 	}

@@ -1,4 +1,4 @@
-package cluster
+package actions
 
 import (
 	"errors"
@@ -9,23 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
-
-func TestNewDockerEndpointSuccessful(t *testing.T) {
-	e, err := NewDockerEndpoint("tcp://example.com:12345")
-	assert.NoError(t, err)
-	assert.Equal(t, "tcp://example.com:12345", e.Name())
-}
-
-func TestNewDockerEndpoint_ErroredBadFormat(t *testing.T) {
-	e, err := NewDockerEndpoint("%¡☃🍔!!")
-	assert.Nil(t, e)
-	assert.EqualError(t, err, `parse %¡☃🍔!!: invalid URL escape "%¡"`)
-}
-
-func TestDockerEndpointName(t *testing.T) {
-	e, _ := NewDockerEndpoint("tcp://example.com")
-	assert.Equal(t, "tcp://example.com", e.Name())
-}
 
 func TestDockerEndpointVersion_Successful(t *testing.T) {
 	c := mockclient.NewMockClient()
