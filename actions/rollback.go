@@ -1,7 +1,6 @@
 package actions
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -17,22 +16,18 @@ func Rollback(options Options) (prettycli.Output, error) {
 		return nil, err
 	}
 
-	reqs := collectRequests(options)
+	reqs, err := collectRequests(options)
+	if err != nil {
+		return nil, err
+	}
 
 	// Get most recent deployment's manifests
-	var manifests DeploymentManifests
-	for _, req := range reqs {
-		ci, err := endpoint.InspectContainer(req.Name)
-		if err != nil {
-			continue
+	manifests, err := getDeploymentManifests(reqs, endpoint)
+	if err != nil {
+		if len(manifests) <= 1 {
+			return nil, errors.New("There are no previous deployments")
 		}
-
-		if err := json.Unmarshal([]byte(ci.Config.Labels["zodiacManifest"]), &manifests); err != nil {
-			fmt.Printf("ERROR: %s\n\n", err)
-			return nil, err
-		}
-
-		break
+		return nil, err
 	}
 
 	if len(manifests) <= 1 {
@@ -55,7 +50,9 @@ func Rollback(options Options) (prettycli.Output, error) {
 	newDeployment = manifests[len(manifests)-1]
 	manifests[len(manifests)-1].DeployedAt = time.Now().Format(time.RFC3339)
 
-	startServices(newDeployment.Services, manifests, endpoint)
+	if err := startServices(newDeployment.Services, manifests, endpoint); err != nil {
+		return nil, err
+	}
 
 	output := fmt.Sprintf("Successfully rolled back to deployment: %d", deploymentID)
 	return prettycli.PlainOutput{output}, nil

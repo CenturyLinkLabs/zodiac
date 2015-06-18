@@ -52,8 +52,8 @@ func (p mockProxy) Stop() error {
 	return nil
 }
 
-func (p mockProxy) GetRequests() []proxy.ContainerRequest {
-	return p.requests
+func (p mockProxy) GetRequests() ([]proxy.ContainerRequest, error) {
+	return p.requests, nil
 }
 
 type mockComposer struct{}

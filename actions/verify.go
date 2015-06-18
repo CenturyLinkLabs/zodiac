@@ -17,10 +17,10 @@ func Verify(options Options) (prettycli.Output, error) {
 		return nil, err
 	}
 
-	log.Infof("validating endpoint %s", endpoint.Name())
+	log.Infof("Validating endpoint %s", endpoint.Name())
 
 	if err := verifyEndpoint(endpoint); err != nil {
-		return prettycli.PlainOutput{}, err
+		return nil, err
 	}
 
 	s := fmt.Sprintf("Successfully verified endpoint: %s", endpoint.Name())

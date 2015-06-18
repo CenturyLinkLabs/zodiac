@@ -39,7 +39,6 @@ func (c *ExecComposer) Run(flags map[string]string) error {
 	log.Info("docker-compose stdout: ", out.String())
 	if err != nil {
 		log.Info("docker-compose stderr: ", errOut.String())
-		log.Fatal(err)
 	}
 
 	return err

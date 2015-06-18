@@ -17,7 +17,10 @@ func Deploy(options Options) (prettycli.Output, error) {
 		return nil, err
 	}
 
-	reqs := collectRequests(options)
+	reqs, err := collectRequests(options)
+	if err != nil {
+		return nil, err
+	}
 
 	dm := DeploymentManifest{
 		Services:   []Service{},
@@ -63,7 +66,9 @@ func Deploy(options Options) (prettycli.Output, error) {
 	}
 	manifests = append(manifests, dm)
 
-	startServices(dm.Services, manifests, endpoint)
+	if err = startServices(dm.Services, manifests, endpoint); err != nil {
+		return nil, err
+	}
 
 	output := fmt.Sprintf("Successfully deployed %d container(s)", len(reqs))
 	return prettycli.PlainOutput{output}, nil

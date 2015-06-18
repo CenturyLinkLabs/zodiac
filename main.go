@@ -147,7 +147,8 @@ func createHandler(z actions.Zodiaction) func(c *cli.Context) {
 
 		o, err := z(actionOpts)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Printf("Error: %s\n", err)
+			os.Exit(1)
 		}
 
 		fmt.Println(o.ToPrettyOutput())

@@ -44,7 +44,7 @@ func TestVerify_ErroredOldVersion(t *testing.T) {
 	o, err := Verify(Options{})
 
 	assert.EqualError(t, err, "Docker API must be 1.6.0 or above, but it is 1.5.0")
-	assert.Empty(t, o.ToPrettyOutput())
+	assert.Nil(t, o)
 }
 
 func TestVerify_ErroredCrazyVersion(t *testing.T) {
@@ -55,7 +55,7 @@ func TestVerify_ErroredCrazyVersion(t *testing.T) {
 	o, err := Verify(Options{})
 
 	assert.EqualError(t, err, "can't understand Docker version 'eleventy-billion'")
-	assert.Empty(t, o.ToPrettyOutput())
+	assert.Nil(t, o)
 }
 
 func TestVerify_ErroredAPIError(t *testing.T) {
@@ -66,5 +66,5 @@ func TestVerify_ErroredAPIError(t *testing.T) {
 	o, err := Verify(Options{})
 
 	assert.EqualError(t, err, "test error")
-	assert.Empty(t, o.ToPrettyOutput())
+	assert.Nil(t, o)
 }

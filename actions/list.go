@@ -1,8 +1,6 @@
 package actions
 
 import (
-	"encoding/json"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -20,21 +18,15 @@ func List(options Options) (prettycli.Output, error) {
 		Labels: []string{"ID", "Deploy Date", "Services", "Message"},
 	}
 
-	reqs := collectRequests(options)
+	reqs, err := collectRequests(options)
+	if err != nil {
+		return nil, err
+	}
+
 	// Get most recent deployment's manifests
-	var manifests DeploymentManifests
-	for _, req := range reqs {
-		ci, err := endpoint.InspectContainer(req.Name)
-		if err != nil {
-			continue
-		}
-
-		if err := json.Unmarshal([]byte(ci.Config.Labels["zodiacManifest"]), &manifests); err != nil {
-			fmt.Printf("ERROR: %s\n\n", err)
-			return nil, err
-		}
-
-		break
+	manifests, err := getDeploymentManifests(reqs, endpoint)
+	if err != nil {
+		return nil, err
 	}
 
 	// Iterate backwards from most recent mani to oldest

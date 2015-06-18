@@ -41,12 +41,14 @@ type Service struct {
 	ContainerConfig dockerclient.ContainerConfig
 }
 
-func collectRequests(options Options) []proxy.ContainerRequest {
+func collectRequests(options Options) ([]proxy.ContainerRequest, error) {
 	go DefaultProxy.Serve()
 	defer DefaultProxy.Stop()
 
-	// TODO: handle error
-	DefaultComposer.Run(options.Flags)
+	if err := DefaultComposer.Run(options.Flags); err != nil {
+		return nil, err
+	}
+
 	return DefaultProxy.GetRequests()
 }
 
@@ -62,8 +64,35 @@ func startServices(services []Service, manifests DeploymentManifests, endpoint E
 		}
 		svc.ContainerConfig.Labels["zodiacManifest"] = string(manifestsBlob)
 
-		endpoint.StartContainer(svc.Name, svc.ContainerConfig)
+		if err := endpoint.StartContainer(svc.Name, svc.ContainerConfig); err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func getDeploymentManifests(reqs []proxy.ContainerRequest, endpoint Endpoint) (DeploymentManifests, error) {
+	var manifests DeploymentManifests
+	var inspectError error
+
+	for _, req := range reqs {
+		ci, err := endpoint.InspectContainer(req.Name)
+		inspectError = err
+		if err != nil {
+			continue
+		}
+
+		if err := json.Unmarshal([]byte(ci.Config.Labels["zodiacManifest"]), &manifests); err != nil {
+			return nil, err
+		}
+
+		break
+	}
+
+	if inspectError != nil {
+		return nil, inspectError
+	}
+
+	return manifests, nil
 }

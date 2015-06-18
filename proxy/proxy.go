@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
@@ -21,12 +22,13 @@ type ContainerRequest struct {
 type Proxy interface {
 	Serve() error
 	Stop() error
-	GetRequests() []ContainerRequest
+	GetRequests() ([]ContainerRequest, error)
 }
 
 type HTTPProxy struct {
 	containerRequests []ContainerRequest
 	listener          *net.TCPListener
+	errors            []error
 }
 
 func NewHTTPProxy(listenAt string) *HTTPProxy {
@@ -51,9 +53,13 @@ func (p *HTTPProxy) Stop() error {
 	return nil
 }
 
-func (p *HTTPProxy) GetRequests() []ContainerRequest {
-	// TODO maybe return errors through this method as well
-	return p.containerRequests
+func (p *HTTPProxy) GetRequests() ([]ContainerRequest, error) {
+	if len(p.errors) > 0 {
+		// TODO: collect errors?
+		return nil, errors.New("Error parsing compose template")
+	}
+
+	return p.containerRequests, nil
 }
 
 func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +67,9 @@ func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		//TODO: return errors to compose
+		p.errors = append(p.errors, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 	name := r.URL.Query()["name"][0]
@@ -99,6 +107,12 @@ func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
 		containers = append(containers, containerInfo)
 	}
 
-	j, _ := json.Marshal(containers)
+	j, err := json.Marshal(containers)
+	if err != nil {
+		p.errors = append(p.errors, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	w.Write(j)
 }
