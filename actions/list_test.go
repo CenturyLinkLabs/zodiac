@@ -35,7 +35,7 @@ func TestList_Success(t *testing.T) {
 		},
 		{
 			DeployedAt: "yesterday",
-			Message:    "initial release",
+			Message:    "initial release for deployment to production, but don't worry you won't see all this text in the list view",
 			Services: []Service{
 				{
 					Name:            "newService",
@@ -91,5 +91,5 @@ func TestList_Success(t *testing.T) {
 	assert.Equal(t, "2", output.Rows[0]["ID"])
 	assert.Equal(t, "yesterday", output.Rows[0]["Deploy Date"])
 	assert.Equal(t, "newService, Another service", output.Rows[0]["Services"])
-	assert.Equal(t, "initial release", output.Rows[0]["Message"])
+	assert.Equal(t, "initial release for deployment to production, but don't worry you won't...", output.Rows[0]["Message"])
 }

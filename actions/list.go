@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -41,9 +42,18 @@ func List(options Options) (prettycli.Output, error) {
 			"ID":          strconv.Itoa(i + 1),
 			"Deploy Date": mani.DeployedAt,
 			"Services":    strings.Join(serviceList, ", "),
-			"Message":     mani.Message,
+			"Message":     truncate(mani.Message, 72),
 		})
 	}
 
 	return output, nil
+}
+
+func truncate(msg string, length int) string {
+
+	if len(msg) <= length {
+		return msg
+	}
+
+	return fmt.Sprintf("%s...", msg[0:length-1])
 }
