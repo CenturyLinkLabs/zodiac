@@ -56,6 +56,10 @@ func init() {
 			Before:      requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
+					Name:  "message, m",
+					Usage: "Give your rollback a comment (defaults to 'Rollback to: [target deployment comment]')",
+				},
+				cli.StringFlag{
 					Name:  "name, n",
 					Usage: "Specify a custom project name",
 					Value: "zodiac",

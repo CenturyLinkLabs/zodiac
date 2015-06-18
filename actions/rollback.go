@@ -50,6 +50,12 @@ func Rollback(options Options) (prettycli.Output, error) {
 	newDeployment = manifests[len(manifests)-1]
 	manifests[len(manifests)-1].DeployedAt = time.Now().Format(BasicDateTime)
 
+	if options.Flags["message"] == "" {
+		manifests[len(manifests)-1].Message = fmt.Sprintf("Rollback to: #%d %s", deploymentID, manifests[len(manifests)-1].Message)
+	} else {
+		manifests[len(manifests)-1].Message = options.Flags["message"]
+	}
+
 	if err := startServices(newDeployment.Services, manifests, endpoint); err != nil {
 		return nil, err
 	}
