@@ -48,7 +48,7 @@ func Rollback(options Options) (prettycli.Output, error) {
 
 	manifests = append(manifests, newDeployment)
 	newDeployment = manifests[len(manifests)-1]
-	manifests[len(manifests)-1].DeployedAt = time.Now().Format(time.RFC3339)
+	manifests[len(manifests)-1].DeployedAt = time.Now().Format(BasicDateTime)
 
 	if err := startServices(newDeployment.Services, manifests, endpoint); err != nil {
 		return nil, err

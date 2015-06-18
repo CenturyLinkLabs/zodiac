@@ -9,7 +9,10 @@ import (
 	"github.com/samalba/dockerclient"
 )
 
-const ProxyAddress = "localhost:31981"
+const (
+	ProxyAddress  = "localhost:31981"
+	BasicDateTime = "2006-01-02 15:04:05"
+)
 
 var (
 	DefaultProxy    proxy.Proxy
