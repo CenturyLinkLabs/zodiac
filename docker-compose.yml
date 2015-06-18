@@ -1,10 +1,10 @@
 foo:
-  image: centurylink/simple-serversldkfj
+  image: centurylink/simple-server
   ports:
     - "8889:8888"
 bar:
   image: centurylink/simple-server
   ports:
-    - "8889:8888"
+    - "8887:8888"
   links:
     - "foo:foo"

@@ -85,6 +85,24 @@ func init() {
 				},
 			},
 		},
+		{
+			Name:   "teardown",
+			Usage:  "Remove running services and deployment history for this application",
+			Action: createHandler(actions.Teardown),
+			Before: requireCluster,
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "name, n",
+					Usage: "Specify a custom project name",
+					Value: "zodiac",
+				},
+				cli.StringFlag{
+					Name:  "file, f",
+					Usage: "Specify an alternate compose file",
+					Value: "docker-compose.yml",
+				},
+			},
+		},
 	}
 }
 
