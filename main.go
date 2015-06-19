@@ -134,7 +134,7 @@ func main() {
 }
 
 func initializeCLI(c *cli.Context) error {
-	if c.GlobalBool("debug") {
+	if c.Bool("debug") {
 		log.SetLevel(log.DebugLevel)
 	}
 
