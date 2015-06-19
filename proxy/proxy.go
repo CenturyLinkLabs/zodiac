@@ -82,12 +82,12 @@ func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
 
 	p.containerRequests = append(p.containerRequests, req)
 
-	fmt.Fprintf(w, `{ "Id":"doesnt_matter", "Warnings":[] }`)
+	fmt.Fprintf(w, `{"Id":"doesnt_matter", "Warnings":[]}`)
 }
 
 func (p *HTTPProxy) inspect(w http.ResponseWriter, r *http.Request) {
 	log.Infof("INSPECT request to %s", r.URL)
-	fmt.Fprintf(w, `{"Id": "doesnt_matter", "Name": "doesnt_matter"}`)
+	fmt.Fprintf(w, `{"Id":"doesnt_matter", "Name":"doesnt_matter"}`)
 }
 
 func (p *HTTPProxy) start(w http.ResponseWriter, r *http.Request) {
