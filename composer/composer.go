@@ -2,6 +2,7 @@ package composer
 
 import (
 	"bytes"
+	"fmt"
 	"os/exec"
 
 	log "github.com/Sirupsen/logrus"
@@ -12,10 +13,11 @@ type Composer interface {
 }
 
 type ExecComposer struct {
+	dockerHost string
 }
 
 func NewExecComposer(dockerHost string) *ExecComposer {
-	return &ExecComposer{}
+	return &ExecComposer{dockerHost: dockerHost}
 }
 
 func (c *ExecComposer) Run(flags map[string]string) error {
@@ -29,7 +31,7 @@ func (c *ExecComposer) Run(flags map[string]string) error {
 		}
 	}
 	cmd := exec.Command("docker-compose", composeArgs...)
-	cmd.Env = []string{"DOCKER_HOST=localhost:61908"}
+	cmd.Env = []string{fmt.Sprintf("DOCKER_HOST=%s", c.dockerHost)}
 	var out bytes.Buffer
 	var errOut bytes.Buffer
 	cmd.Stdout = &out

@@ -25,13 +25,14 @@ type Proxy interface {
 }
 
 type HTTPProxy struct {
+	address           string
 	containerRequests []ContainerRequest
 	listener          *net.TCPListener
 	errors            []error
 }
 
 func NewHTTPProxy(listenAt string) *HTTPProxy {
-	return &HTTPProxy{}
+	return &HTTPProxy{address: listenAt}
 }
 
 func (p *HTTPProxy) Serve() error {
@@ -41,7 +42,7 @@ func (p *HTTPProxy) Serve() error {
 	r.Path("/v1.15/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
 	r.Path("/v1.15/containers/json").Methods("GET").HandlerFunc(p.listAll)
 
-	laddr, _ := net.ResolveTCPAddr("tcp", "localhost:61908")
+	laddr, _ := net.ResolveTCPAddr("tcp", p.address)
 	listener, _ := net.ListenTCP("tcp", laddr)
 	p.listener = listener
 	return http.Serve(listener, r)
