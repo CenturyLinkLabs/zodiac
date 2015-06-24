@@ -37,9 +37,10 @@ func init() {
 					Usage: "Give your deployment a comment",
 				},
 				cli.StringFlag{
-					Name:  "name, n",
-					Usage: "Specify a custom project name",
-					Value: "zodiac",
+					Name:   "name, n",
+					Usage:  "Specify a custom project name",
+					Value:  "zodiac",
+					EnvVar: "ZODIAC_PROJECT_NAME",
 				},
 				cli.StringFlag{
 					Name:  "file, f",
@@ -60,9 +61,10 @@ func init() {
 					Usage: "Give your rollback a comment (defaults to 'Rollback to: [target deployment comment]')",
 				},
 				cli.StringFlag{
-					Name:  "name, n",
-					Usage: "Specify a custom project name",
-					Value: "zodiac",
+					Name:   "name, n",
+					Usage:  "Specify a custom project name",
+					Value:  "zodiac",
+					EnvVar: "ZODIAC_PROJECT_NAME",
 				},
 				cli.StringFlag{
 					Name:  "file, f",
@@ -78,9 +80,10 @@ func init() {
 			Before: requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "name, n",
-					Usage: "Specify a custom project name",
-					Value: "zodiac",
+					Name:   "name, n",
+					Usage:  "Specify a custom project name",
+					Value:  "zodiac",
+					EnvVar: "ZODIAC_PROJECT_NAME",
 				},
 				cli.StringFlag{
 					Name:  "file, f",
@@ -96,9 +99,10 @@ func init() {
 			Before: requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "name, n",
-					Usage: "Specify a custom project name",
-					Value: "zodiac",
+					Name:   "name, n",
+					Usage:  "Specify a custom project name",
+					Value:  "zodiac",
+					EnvVar: "ZODIAC_PROJECT_NAME",
 				},
 				cli.StringFlag{
 					Name:  "file, f",

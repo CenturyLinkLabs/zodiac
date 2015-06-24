@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 
@@ -54,13 +55,29 @@ func TestVerify_Successful(t *testing.T) {
 	assert.Empty(t, r.Stderr())
 }
 
-func TestVerify_NoCluster(t *testing.T) {
+func TestVerify_NoEndpoint(t *testing.T) {
 	setup(t)
 
 	r := b.Run(t, "verify")
 	r.AssertExitCode(1)
 	assert.Contains(t, r.Stderr(), "specify a Docker endpoint")
 	assert.Empty(t, r.Stdout())
+}
+
+func TestVerify_EndpointEnvVar(t *testing.T) {
+	setup(t)
+	s, endpointFlag := newFakeServerAndFlag()
+	defer s.Close()
+
+	parts := strings.Split(endpointFlag, "=")
+
+	os.Setenv("ZODIAC_DOCKER_ENDPOINT", parts[1])
+	defer os.Unsetenv("ZODIAC_DOCKER_ENDPOINT")
+
+	r := b.Run(t, "verify")
+	r.AssertSuccessful()
+	assert.Contains(t, r.Stdout(), "Successfully verified endpoint:")
+	assert.Empty(t, r.Stderr())
 }
 
 func TestDeploy_Successful(t *testing.T) {
