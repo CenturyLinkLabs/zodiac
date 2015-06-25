@@ -9,3 +9,4 @@ A lightweight tool, built on top of [Docker Compose](https://docs.docker.com/com
 - [ ] Compose v1.3 support
 - [ ] Client to remote endpoint authentication
 - [ ] Support for compose's `build` option
+- [ ] Support for private repos on the Docker hub
