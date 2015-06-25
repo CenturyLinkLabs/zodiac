@@ -13,7 +13,7 @@ import (
 type mockRollbackEndpoint struct {
 	mockEndpoint
 	inspectCallback func(string) (*dockerclient.ContainerInfo, error)
-	startCallback   func(string, dockerclient.ContainerConfig) error
+	startCallback   func(string, ContainerConfig) error
 	removeCallback  func(string) error
 }
 
@@ -21,7 +21,7 @@ func (e mockRollbackEndpoint) InspectContainer(nm string) (*dockerclient.Contain
 	return e.inspectCallback(nm)
 }
 
-func (e mockRollbackEndpoint) StartContainer(nm string, cfg dockerclient.ContainerConfig) error {
+func (e mockRollbackEndpoint) StartContainer(nm string, cfg ContainerConfig) error {
 	return e.startCallback(nm, cfg)
 }
 
@@ -36,14 +36,15 @@ func (e mockRollbackEndpoint) RemoveContainer(nm string) error {
 func TestRollback_Success(t *testing.T) {
 
 	var startCalls []capturedStartParams
+	oldServiceConfig := ContainerConfig{}
+	oldServiceConfig.Image = "oldimage"
+
 	previousManis := []DeploymentManifest{
 		{
 			Services: []Service{
 				{
-					Name: "oldService",
-					ContainerConfig: dockerclient.ContainerConfig{
-						Image: "oldimage",
-					},
+					Name:            "oldService",
+					ContainerConfig: oldServiceConfig,
 				},
 			},
 		},
@@ -51,7 +52,7 @@ func TestRollback_Success(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "newService",
-					ContainerConfig: dockerclient.ContainerConfig{},
+					ContainerConfig: ContainerConfig{},
 				},
 			},
 		},
@@ -80,7 +81,7 @@ func TestRollback_Success(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+		startCallback: func(nm string, cfg ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -114,14 +115,14 @@ func TestRollback_Success(t *testing.T) {
 func TestRollbackWithID_Success(t *testing.T) {
 
 	var startCalls []capturedStartParams
+	oldServiceConfig := ContainerConfig{}
+	oldServiceConfig.Image = "oldimage"
 	previousManis := []DeploymentManifest{
 		{
 			Services: []Service{
 				{
-					Name: "oldService",
-					ContainerConfig: dockerclient.ContainerConfig{
-						Image: "oldimage",
-					},
+					Name:            "oldService",
+					ContainerConfig: oldServiceConfig,
 				},
 			},
 		},
@@ -129,7 +130,7 @@ func TestRollbackWithID_Success(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "newService",
-					ContainerConfig: dockerclient.ContainerConfig{},
+					ContainerConfig: ContainerConfig{},
 				},
 			},
 		},
@@ -158,7 +159,7 @@ func TestRollbackWithID_Success(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+		startCallback: func(nm string, cfg ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -191,7 +192,7 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "OnlyDeployment",
-					ContainerConfig: dockerclient.ContainerConfig{},
+					ContainerConfig: ContainerConfig{},
 				},
 			},
 		},
@@ -220,7 +221,7 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+		startCallback: func(nm string, cfg ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -253,7 +254,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "First Deplyment",
-					ContainerConfig: dockerclient.ContainerConfig{},
+					ContainerConfig: ContainerConfig{},
 				},
 			},
 		},
@@ -261,7 +262,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "Second Deployment",
-					ContainerConfig: dockerclient.ContainerConfig{},
+					ContainerConfig: ContainerConfig{},
 				},
 			},
 		},
@@ -290,7 +291,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+		startCallback: func(nm string, cfg ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,

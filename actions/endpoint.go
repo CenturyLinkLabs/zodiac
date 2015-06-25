@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"encoding/json"
 	"net/url"
 
 	log "github.com/Sirupsen/logrus"
@@ -29,7 +30,7 @@ type Endpoint interface {
 	Name() string
 	Host() string
 	ResolveImage(string) (string, error)
-	StartContainer(name string, cc dockerclient.ContainerConfig) error
+	StartContainer(name string, cc ContainerConfig) error
 	InspectContainer(name string) (*dockerclient.ContainerInfo, error)
 	RemoveContainer(name string) error
 }
@@ -57,8 +58,10 @@ func (e *DockerEndpoint) Name() string {
 	return e.url
 }
 
-func (e *DockerEndpoint) StartContainer(name string, cc dockerclient.ContainerConfig) error {
-	id, err := e.client.CreateContainer(&cc, name)
+func (e *DockerEndpoint) StartContainer(name string, cc ContainerConfig) error {
+	dcc, _ := translateContainerConfig(cc)
+
+	id, err := e.client.CreateContainer(&dcc, name)
 	if err != nil {
 		log.Fatalf("Problem creating container: ", err)
 	}
@@ -98,4 +101,16 @@ func (e *DockerEndpoint) InspectContainer(name string) (*dockerclient.ContainerI
 func (e *DockerEndpoint) RemoveContainer(name string) error {
 	//TODO: be more graceful
 	return e.client.RemoveContainer(name, true, false)
+}
+
+func translateContainerConfig(cc ContainerConfig) (dockerclient.ContainerConfig, error) {
+	var dcc dockerclient.ContainerConfig
+
+	j, err := json.Marshal(cc)
+	if err != nil {
+		return dcc, err
+	}
+
+	err = json.Unmarshal(j, &dcc)
+	return dcc, err
 }

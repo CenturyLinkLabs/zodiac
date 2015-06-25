@@ -20,7 +20,7 @@ func (e mockEndpoint) Name() string {
 	return "fakeName that is really a URI"
 }
 
-func (e mockEndpoint) StartContainer(string, dockerclient.ContainerConfig) error {
+func (e mockEndpoint) StartContainer(string, ContainerConfig) error {
 	return nil
 }
 
@@ -64,5 +64,5 @@ func (c *mockComposer) Run(flags map[string]string) error {
 
 type capturedStartParams struct {
 	Name   string
-	Config dockerclient.ContainerConfig
+	Config ContainerConfig
 }

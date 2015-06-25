@@ -1,0 +1,49 @@
+foo:
+  image: centurylink/simple-server
+  ports:
+    - "8889:8888"
+  environment:
+    FOO1: bar
+    FOO2: bar
+  expose:
+    - "8888"
+  volumes:
+    - /data
+  entrypoint: /bin/sh
+  command: -c "while true; do echo 'hello world - version 2' | nc -l -p 8888; done"
+  net: "bridge"
+  dns: 8.8.8.8
+  dns_search: example.com
+  restart: always
+  privileged: "false"
+  stdin_open: "true"
+  tty: "false" 
+  user: root
+  hostname: foo
+  domainname: foo.com
+  working_dir: /
+  cpu_shares: 73
+  mem_limit: 1000000000
+bar:
+  image: centurylink/simple-server
+  entrypoint: 
+    - /bin/sh
+  command: -c "while true; do echo 'hello world - version 2' | nc -l -p 8888; done"
+  ports:
+    - "8887:8888"
+  links:
+    - "foo:foo"
+  environment:
+    - "BAR1=foo"
+    - "BAR2=foo"
+  dns:
+    - 8.8.8.8
+    - 9.9.9.9
+  cap_add:
+    - ALL
+  dns_search:
+    - dc1.example.com
+    - dc2.example.com
+  privileged: false
+  stdin_open: true
+  tty: false 

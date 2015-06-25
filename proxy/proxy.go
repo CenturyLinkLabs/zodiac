@@ -16,7 +16,6 @@ import (
 type ContainerRequest struct {
 	Name          string
 	CreateOptions []byte
-	Config        dockerclient.ContainerConfig
 }
 
 type Proxy interface {
@@ -101,7 +100,7 @@ func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
 
 	for _, req := range p.containerRequests {
 		containerInfo := dockerclient.Container{
-			Image: req.Config.Image,
+			Image: "doesntmatter",
 			Names: []string{req.Name},
 		}
 		containers = append(containers, containerInfo)

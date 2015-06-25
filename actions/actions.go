@@ -2,6 +2,7 @@ package actions
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/composer"
@@ -41,7 +42,64 @@ type DeploymentManifest struct {
 
 type Service struct {
 	Name            string
-	ContainerConfig dockerclient.ContainerConfig
+	ContainerConfig ContainerConfig
+}
+
+type ContainerConfig struct {
+	dockerclient.ContainerConfig
+	Tty        FromStringOrBool
+	OpenStdin  FromStringOrBool
+	Entrypoint FromStringOrStringSlice
+	// This is used only by the create command
+	HostConfig HostConfig
+}
+
+type HostConfig struct {
+	dockerclient.HostConfig
+	Privileged     FromStringOrBool
+	ReadonlyRootfs FromStringOrBool
+}
+
+type FromStringOrStringSlice struct {
+	Value []string
+}
+
+func (s *FromStringOrStringSlice) UnmarshalJSON(value []byte) error {
+	if value[0] == '"' {
+		var str string
+		if err := json.Unmarshal(value, &str); err != nil {
+			return err
+		}
+		s.Value = strings.Split(str, " ")
+		return nil
+	}
+
+	return json.Unmarshal(value, &s.Value)
+}
+
+func (s FromStringOrStringSlice) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Value)
+}
+
+type FromStringOrBool struct {
+	Value bool
+}
+
+func (s *FromStringOrBool) UnmarshalJSON(value []byte) error {
+	if value[0] == '"' {
+		var str string
+		if err := json.Unmarshal(value, &str); err != nil {
+			return err
+		}
+		s.Value = (strings.ToLower(str) == "true")
+		return nil
+	}
+
+	return json.Unmarshal(value, &s.Value)
+}
+
+func (s FromStringOrBool) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.Value)
 }
 
 func collectRequests(options Options) ([]proxy.ContainerRequest, error) {

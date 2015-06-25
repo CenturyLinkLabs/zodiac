@@ -21,15 +21,15 @@ func (e mockListEndpoint) InspectContainer(nm string) (*dockerclient.ContainerIn
 }
 
 func TestList_Success(t *testing.T) {
+	oldServiceConfig := ContainerConfig{}
+	oldServiceConfig.Image = "oldimage"
 
 	previousManis := []DeploymentManifest{
 		{
 			Services: []Service{
 				{
-					Name: "oldService",
-					ContainerConfig: dockerclient.ContainerConfig{
-						Image: "oldimage",
-					},
+					Name:            "oldService",
+					ContainerConfig: oldServiceConfig,
 				},
 			},
 		},
@@ -39,11 +39,11 @@ func TestList_Success(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "newService",
-					ContainerConfig: dockerclient.ContainerConfig{},
+					ContainerConfig: ContainerConfig{},
 				},
 				{
 					Name:            "Another service",
-					ContainerConfig: dockerclient.ContainerConfig{},
+					ContainerConfig: ContainerConfig{},
 				},
 			},
 		},

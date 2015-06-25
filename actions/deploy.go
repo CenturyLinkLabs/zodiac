@@ -7,7 +7,6 @@ import (
 
 	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
-	"github.com/samalba/dockerclient"
 )
 
 func Deploy(options Options) (prettycli.Output, error) {
@@ -75,7 +74,7 @@ func Deploy(options Options) (prettycli.Output, error) {
 }
 
 func serviceForRequest(req proxy.ContainerRequest) (Service, error) {
-	var cc dockerclient.ContainerConfig
+	var cc ContainerConfig
 
 	if err := json.Unmarshal(req.CreateOptions, &cc); err != nil {
 		return Service{}, err

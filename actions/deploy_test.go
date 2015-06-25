@@ -6,17 +6,16 @@ import (
 	"testing"
 
 	"github.com/CenturyLinkLabs/zodiac/proxy"
-	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockDeployEndpoint struct {
 	mockEndpoint
-	startCallback        func(string, dockerclient.ContainerConfig) error
+	startCallback        func(string, ContainerConfig) error
 	resolveImageCallback func(string) (string, error)
 }
 
-func (e mockDeployEndpoint) StartContainer(nm string, cfg dockerclient.ContainerConfig) error {
+func (e mockDeployEndpoint) StartContainer(nm string, cfg ContainerConfig) error {
 	return e.startCallback(nm, cfg)
 }
 
@@ -40,7 +39,7 @@ func TestDeploy_Success(t *testing.T) {
 	DefaultComposer = &mockComposer{}
 
 	e := mockDeployEndpoint{
-		startCallback: func(nm string, cfg dockerclient.ContainerConfig) error {
+		startCallback: func(nm string, cfg ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
