@@ -2,6 +2,7 @@ package actions
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 
 	"github.com/CenturyLinkLabs/prettycli"
@@ -124,6 +125,8 @@ func startServices(services []Service, manifests DeploymentManifests, endpoint E
 			svc.ContainerConfig.Labels = make(map[string]string)
 		}
 		svc.ContainerConfig.Labels["zodiacManifest"] = string(manifestsBlob)
+
+		fmt.Printf("Creating %s\n", svc.Name)
 
 		if err := endpoint.StartContainer(svc.Name, svc.ContainerConfig); err != nil {
 			return err

@@ -10,6 +10,7 @@ import (
 )
 
 func Rollback(options Options) (prettycli.Output, error) {
+	fmt.Println("Rolling back your application...")
 
 	endpoint, err := endpointFactory(options.Flags["endpoint"])
 	if err != nil {
