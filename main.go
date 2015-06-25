@@ -130,7 +130,27 @@ func main() {
 		cli.StringFlag{
 			Name:   "endpoint",
 			Usage:  "Docker endpoint",
-			EnvVar: "ZODIAC_DOCKER_ENDPOINT",
+			EnvVar: "DOCKER_HOST",
+		},
+		cli.StringFlag{
+			Name:   "tlscacert",
+			Usage:  "",
+			EnvVar: "TLS_CA_CERT",
+		},
+		cli.StringFlag{
+			Name:   "tlscert",
+			Usage:  "",
+			EnvVar: "TLS_CERT",
+		},
+		cli.StringFlag{
+			Name:   "tlskey",
+			Usage:  "",
+			EnvVar: "TLS_KEY",
+		},
+		cli.BoolTFlag{
+			Name:   "tlsverify",
+			Usage:  "",
+			EnvVar: "DOCKER_TLS_VERIFY",
 		},
 	}
 
@@ -164,11 +184,19 @@ func createHandler(z actions.Zodiaction) func(c *cli.Context) {
 		for _, flagName := range c.GlobalFlagNames() {
 			flags[flagName] = c.String(flagName)
 		}
-		flags["endpoint"] = c.GlobalString("endpoint")
+
+		eOpts := actions.EndpointOptions{
+			Host:      c.GlobalString("endpoint"),
+			TLSVerify: c.GlobalBool("tlsverify"),
+			TLSCert:   c.GlobalString("tlscert"),
+			TLSCaCert: c.GlobalString("tlscacert"),
+			TLSKey:    c.GlobalString("tlskey"),
+		}
 
 		actionOpts := actions.Options{
-			Args:  c.Args(),
-			Flags: flags,
+			Args:            c.Args(),
+			Flags:           flags,
+			EndpointOptions: eOpts,
 		}
 
 		o, err := z(actionOpts)

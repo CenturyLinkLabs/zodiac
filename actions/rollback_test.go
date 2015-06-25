@@ -90,7 +90,7 @@ func TestRollback_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(string) (Endpoint, error) {
+	endpointFactory = func(EndpointOptions) (Endpoint, error) {
 		return e, nil
 	}
 
@@ -168,7 +168,7 @@ func TestRollbackWithID_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(string) (Endpoint, error) {
+	endpointFactory = func(EndpointOptions) (Endpoint, error) {
 		return e, nil
 	}
 
@@ -234,7 +234,7 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(string) (Endpoint, error) {
+	endpointFactory = func(EndpointOptions) (Endpoint, error) {
 		return e, nil
 	}
 
@@ -304,7 +304,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(string) (Endpoint, error) {
+	endpointFactory = func(EndpointOptions) (Endpoint, error) {
 		return e, nil
 	}
 

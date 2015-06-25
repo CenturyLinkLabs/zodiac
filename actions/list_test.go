@@ -74,7 +74,7 @@ func TestList_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(string) (Endpoint, error) {
+	endpointFactory = func(EndpointOptions) (Endpoint, error) {
 		return e, nil
 	}
 

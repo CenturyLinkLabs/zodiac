@@ -71,8 +71,8 @@ func TestVerify_EndpointEnvVar(t *testing.T) {
 
 	parts := strings.Split(endpointFlag, "=")
 
-	os.Setenv("ZODIAC_DOCKER_ENDPOINT", parts[1])
-	defer os.Unsetenv("ZODIAC_DOCKER_ENDPOINT")
+	os.Setenv("DOCKER_HOST", parts[1])
+	defer os.Unsetenv("DOCKER_HOST")
 
 	r := b.Run(t, "verify")
 	r.AssertSuccessful()

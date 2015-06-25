@@ -12,7 +12,7 @@ import (
 func Deploy(options Options) (prettycli.Output, error) {
 	fmt.Println("Deploying your application...")
 
-	endpoint, err := endpointFactory(options.Flags["endpoint"])
+	endpoint, err := endpointFactory(options.EndpointOptions)
 	if err != nil {
 		return nil, err
 	}

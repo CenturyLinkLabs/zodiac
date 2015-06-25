@@ -27,8 +27,17 @@ func init() {
 }
 
 type Options struct {
-	Args  []string
-	Flags map[string]string
+	Args            []string
+	Flags           map[string]string
+	EndpointOptions EndpointOptions
+}
+
+type EndpointOptions struct {
+	Host      string
+	TLSVerify bool
+	TLSCert   string
+	TLSCaCert string
+	TLSKey    string
 }
 
 type Zodiaction func(Options) (prettycli.Output, error)
