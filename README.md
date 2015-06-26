@@ -11,9 +11,11 @@ A lightweight tool, built on top of [Docker Compose](https://docs.docker.com/com
 ### TLS
 If you are going to use Zodiac to deploy to remote hosts you will want to ensure that your remote Docker daemon is protected with TLS security.
 Zodiac ships with TLS support out of the box. Both host verification and client authentication are done via TLS.
-TLS is enabled by default, though it may be disabled for debugging purposes, private networks, etc.
+TLS is enabled by default, though it may be disabled for debugging purposes, when using private networks, etc.
 
-#### Let Docker Machine do all the heavy lifting
+#### Configuring TLS
+
+##### Let Docker Machine do all the heavy lifting
 
 If you used Docker machine to provision Docker on the remote Host, it will have generated TLS certificates and keys for you on both the client and host machine.
 
@@ -21,7 +23,7 @@ You can use the `docker-machine env` command to automatically set-up the environ
 
     eval "$(docker-machine env your_remote_name)"
 
-#### OR Set up the certificates manually
+##### OR Set up the certificates manually
 
 If you choose to generate the TLS certificates manually, you'll want to genrate a certificate (be it self-signed or CA signed) for the host.
 You'll also want to generate a client certificate for authentication purposes. Consult the Docker docs for [securing the Docker daemon](https://docs.docker.com/articles/https/).
