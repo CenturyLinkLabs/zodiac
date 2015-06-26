@@ -10,7 +10,7 @@ import (
 
 func List(options Options) (prettycli.Output, error) {
 
-	endpoint, err := endpointFactory(options.Flags["endpoint"])
+	endpoint, err := endpointFactory(options.EndpointOptions)
 	if err != nil {
 		return nil, err
 	}

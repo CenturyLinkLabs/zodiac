@@ -3,6 +3,7 @@ package actions
 import (
 	"encoding/json"
 	"fmt"
+	"os/user"
 	"strings"
 
 	"github.com/CenturyLinkLabs/prettycli"
@@ -27,8 +28,40 @@ func init() {
 }
 
 type Options struct {
-	Args  []string
-	Flags map[string]string
+	Args            []string
+	Flags           map[string]string
+	EndpointOptions EndpointOptions
+}
+
+type EndpointOptions struct {
+	Host      string
+	TLS       bool
+	TLSVerify bool
+	TLSCaCert string
+	TLSCert   string
+	TLSKey    string
+}
+
+func (eo EndpointOptions) tlsCaCert() string {
+	return resolveHomeDirectory(eo.TLSCaCert)
+}
+
+func (eo EndpointOptions) tlsCert() string {
+	return resolveHomeDirectory(eo.TLSCert)
+}
+
+func (eo EndpointOptions) tlsKey() string {
+	return resolveHomeDirectory(eo.TLSKey)
+}
+
+func resolveHomeDirectory(path string) string {
+	if strings.Contains(path, "~") {
+		usr, _ := user.Current()
+		dir := usr.HomeDir
+		return strings.Replace(path, "~", dir, 1)
+	}
+
+	return path
 }
 
 type Zodiaction func(Options) (prettycli.Output, error)

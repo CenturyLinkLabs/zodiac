@@ -130,11 +130,43 @@ func main() {
 		cli.StringFlag{
 			Name:   "endpoint",
 			Usage:  "Docker endpoint",
-			EnvVar: "ZODIAC_DOCKER_ENDPOINT",
+			EnvVar: "DOCKER_HOST",
+		},
+		cli.BoolTFlag{
+			Name:   "tls",
+			Usage:  "Use TLS",
+			EnvVar: "DOCKER_TLS",
+		},
+		cli.BoolTFlag{
+			Name:   "tlsverify",
+			Usage:  "Use TLS and verify the remote",
+			EnvVar: "DOCKER_TLS_VERIFY",
+		},
+		cli.StringFlag{
+			Name:  "tlscacert",
+			Usage: "Trust certs signed only by this CA",
+			Value: fmt.Sprintf("%s/ca.pem", rootCertPath()),
+		},
+		cli.StringFlag{
+			Name:  "tlscert",
+			Usage: "Path to TLS certificate file",
+			Value: fmt.Sprintf("%s/cert.pem", rootCertPath()),
+		},
+		cli.StringFlag{
+			Name:  "tlskey",
+			Usage: "Path to TLS key file",
+			Value: fmt.Sprintf("%s/key.pem", rootCertPath()),
 		},
 	}
 
 	app.Run(os.Args)
+}
+
+func rootCertPath() string {
+	if os.Getenv("DOCKER_CERT_PATH") != "" {
+		return os.Getenv("DOCKER_CERT_PATH")
+	}
+	return "~/.docker"
 }
 
 func initializeCLI(c *cli.Context) error {
@@ -164,11 +196,20 @@ func createHandler(z actions.Zodiaction) func(c *cli.Context) {
 		for _, flagName := range c.GlobalFlagNames() {
 			flags[flagName] = c.String(flagName)
 		}
-		flags["endpoint"] = c.GlobalString("endpoint")
+
+		eOpts := actions.EndpointOptions{
+			Host:      c.GlobalString("endpoint"),
+			TLS:       c.GlobalBool("tls"),
+			TLSVerify: c.GlobalBool("tlsverify"),
+			TLSCaCert: c.GlobalString("tlscacert"),
+			TLSCert:   c.GlobalString("tlscert"),
+			TLSKey:    c.GlobalString("tlskey"),
+		}
 
 		actionOpts := actions.Options{
-			Args:  c.Args(),
-			Flags: flags,
+			Args:            c.Args(),
+			Flags:           flags,
+			EndpointOptions: eOpts,
 		}
 
 		o, err := z(actionOpts)

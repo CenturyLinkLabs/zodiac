@@ -1,7 +1,10 @@
 package actions
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"io/ioutil"
 	"net/url"
 
 	log "github.com/Sirupsen/logrus"
@@ -13,17 +16,57 @@ var (
 )
 
 func init() {
-	endpointFactory = func(dockerHost string) (Endpoint, error) {
-		c, err := dockerclient.NewDockerClient(dockerHost, nil)
+	endpointFactory = func(endpointOpts EndpointOptions) (Endpoint, error) {
+
+		tlsConfig, err := getTlsConfig(endpointOpts)
 		if err != nil {
 			return nil, err
 		}
 
-		return &DockerEndpoint{url: dockerHost, client: c}, nil
+		c, err := dockerclient.NewDockerClient(endpointOpts.Host, tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+
+		return &DockerEndpoint{url: endpointOpts.Host, client: c}, nil
 	}
 }
 
-type EndpointFactory func(string) (Endpoint, error)
+func getTlsConfig(endpointOpts EndpointOptions) (*tls.Config, error) {
+	var tlsConfig *tls.Config
+
+	if endpointOpts.TLS {
+
+		tlsConfig = &tls.Config{
+			InsecureSkipVerify: !endpointOpts.TLSVerify,
+		}
+
+		if endpointOpts.tlsCert() != "" && endpointOpts.tlsKey() != "" {
+
+			cert, err := tls.LoadX509KeyPair(endpointOpts.tlsCert(), endpointOpts.tlsKey())
+			if err != nil {
+				return nil, err
+			}
+			tlsConfig.Certificates = []tls.Certificate{cert}
+		}
+
+		// Load CA cert
+		if endpointOpts.tlsCaCert() != "" {
+
+			caCert, err := ioutil.ReadFile(endpointOpts.tlsCaCert())
+			if err != nil {
+				return nil, err
+			}
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
+
+			tlsConfig.RootCAs = caCertPool
+		}
+	}
+	return tlsConfig, nil
+}
+
+type EndpointFactory func(EndpointOptions) (Endpoint, error)
 
 type Endpoint interface {
 	Version() (string, error)
@@ -40,6 +83,7 @@ type DockerEndpoint struct {
 	client dockerclient.Client
 }
 
+// TODO: can we ditch this? Should always have it on the client
 func (e *DockerEndpoint) Host() string {
 	url, _ := url.Parse(e.url)
 	return url.Host
@@ -54,13 +98,13 @@ func (e *DockerEndpoint) Version() (string, error) {
 	return v.Version, nil
 }
 
+// TODO: can we ditch this? Should always have it on the client
 func (e *DockerEndpoint) Name() string {
 	return e.url
 }
 
 func (e *DockerEndpoint) StartContainer(name string, cc ContainerConfig) error {
 	dcc, _ := translateContainerConfig(cc)
-
 	id, err := e.client.CreateContainer(&dcc, name)
 	if err != nil {
 		log.Fatalf("Problem creating container: ", err)

@@ -12,7 +12,7 @@ var RequredAPIVersion = semver.MustParse("1.6.0")
 
 func Verify(options Options) (prettycli.Output, error) {
 
-	endpoint, err := endpointFactory(options.Flags["endpoint"])
+	endpoint, err := endpointFactory(options.EndpointOptions)
 	if err != nil {
 		return nil, err
 	}

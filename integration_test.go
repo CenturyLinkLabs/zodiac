@@ -14,6 +14,8 @@ import (
 
 var b *clitest.BuildTester
 
+const TLSFlag = "--tls=false"
+
 func setup(t *testing.T) {
 	if testing.Short() {
 		t.SkipNow()
@@ -49,7 +51,7 @@ func TestVerify_Successful(t *testing.T) {
 	s, endpointFlag := newFakeServerAndFlag()
 	defer s.Close()
 
-	r := b.Run(t, endpointFlag, "verify")
+	r := b.Run(t, TLSFlag, endpointFlag, "verify")
 	r.AssertSuccessful()
 	assert.Contains(t, r.Stdout(), "Successfully verified endpoint:")
 	assert.Empty(t, r.Stderr())
@@ -71,10 +73,10 @@ func TestVerify_EndpointEnvVar(t *testing.T) {
 
 	parts := strings.Split(endpointFlag, "=")
 
-	os.Setenv("ZODIAC_DOCKER_ENDPOINT", parts[1])
-	defer os.Unsetenv("ZODIAC_DOCKER_ENDPOINT")
+	os.Setenv("DOCKER_HOST", parts[1])
+	defer os.Unsetenv("DOCKER_HOST")
 
-	r := b.Run(t, "verify")
+	r := b.Run(t, TLSFlag, "verify")
 	r.AssertSuccessful()
 	assert.Contains(t, r.Stdout(), "Successfully verified endpoint:")
 	assert.Empty(t, r.Stderr())
@@ -85,7 +87,7 @@ func TestDeploy_Successful(t *testing.T) {
 	s, endpointFlag := newFakeServerAndFlag()
 	defer s.Close()
 
-	r := b.Run(t, endpointFlag, "deploy", "-f", "fixtures/webapp.yml")
+	r := b.Run(t, TLSFlag, endpointFlag, "deploy", "-f", "fixtures/webapp.yml")
 	fmt.Println(r.Stderr())
 	fmt.Println(r.Stdout())
 	r.AssertSuccessful()
