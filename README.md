@@ -2,8 +2,15 @@
 
 A lightweight tool, built on top of [Docker Compose](https://docs.docker.com/compose/), for tactical deployment of a dockerized application.
 
-## Pre-reqs
+## Usage
+
+### Pre-reqs
 * Docker Compose v1.2
+
+### Installation
+
+* Install [Docker Compose](http://docs.docker.com/compose/) **v1.2**. See: http://docs.docker.com/compose/
+* Install the Zodiac Binary for your platform. See: https://github.com/CenturyLinkLabs/zodiac/releases/
 
 ## Desired features / fixes
 - [ ] Compose v1.3 support
