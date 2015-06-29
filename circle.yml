@@ -32,3 +32,7 @@ deployment:
     branch: master
     commands:
       - docker run -v $(pwd):/src centurylink/golang-builder:latest
+  debug:
+    branch: resolve-issue
+    commands:
+      - docker run -v $(pwd):/src centurylink/golang-builder:latest

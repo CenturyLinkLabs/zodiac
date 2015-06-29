@@ -55,12 +55,18 @@ func (eo EndpointOptions) tlsKey() string {
 }
 
 func resolveHomeDirectory(path string) string {
+	fmt.Printf("\nPath before: %s\n", path)
 	if strings.Contains(path, "~") {
 		usr, _ := user.Current()
+		fmt.Printf("\nuser : %+v\n", usr)
 		dir := usr.HomeDir
-		return strings.Replace(path, "~", dir, 1)
+		fmt.Printf("\nuser dir: %s\n", dir)
+		p := strings.Replace(path, "~", dir, 1)
+		fmt.Printf("\nPath after: %s\n", p)
+		return p
 	}
 
+	fmt.Printf("\nPath with no ~: %s\n", path)
 	return path
 }
 
