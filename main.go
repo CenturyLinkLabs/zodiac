@@ -10,7 +10,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-const version = "0.0.1"
+const version = "0.1.0"
 
 var (
 	commands []cli.Command
