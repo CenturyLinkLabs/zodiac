@@ -89,7 +89,3 @@ Use the `zodiac help` command to see the options for passing in the necassary ce
 - [ ] Support for compose's `build` option
 - [ ] Support for compose's `volumes_from` option
 - [ ] Support for private repos on the Docker hub
-
-## Limitations / Known Issues
-- Zodiac does not currently support the Docker Compose `build` option
-- Zodiac does not currently support the volumes_from option
