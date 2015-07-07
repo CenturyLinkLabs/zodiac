@@ -54,7 +54,7 @@ func TestVerify_ErroredCrazyVersion(t *testing.T) {
 	}
 	o, err := Verify(Options{})
 
-	assert.EqualError(t, err, "can't understand Docker version 'eleventy-billion'")
+	assert.EqualError(t, err, "can't understand version 'eleventy-billion'")
 	assert.Nil(t, o)
 }
 
@@ -66,5 +66,27 @@ func TestVerify_ErroredAPIError(t *testing.T) {
 	o, err := Verify(Options{})
 
 	assert.EqualError(t, err, "test error")
+	assert.Nil(t, o)
+}
+
+func TestVerify_SwarmSuccess(t *testing.T) {
+	e := mockVerifyEndpoint{version: "swarm/1.6.1", url: "http://foo.bar"}
+	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+		return e, nil
+	}
+	o, err := Verify(Options{})
+
+	assert.NoError(t, err)
+	assert.Equal(t, "Successfully verified endpoint: http://foo.bar", o.ToPrettyOutput())
+}
+
+func TestVerify_SwarmOldVersion(t *testing.T) {
+	e := mockVerifyEndpoint{version: "swarm/0.2.1", url: "http://foo.bar"}
+	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+		return e, nil
+	}
+	o, err := Verify(Options{})
+
+	assert.EqualError(t, err, "Swarm API must be 0.3.0 or above, but it is 0.2.1")
 	assert.Nil(t, o)
 }

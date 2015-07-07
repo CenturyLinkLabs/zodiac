@@ -2,13 +2,15 @@ package actions
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/CenturyLinkLabs/prettycli"
 	log "github.com/Sirupsen/logrus"
 	"github.com/blang/semver"
 )
 
-var RequredAPIVersion = semver.MustParse("1.6.0")
+var RequiredDockerAPIVersion = semver.MustParse("1.6.0")
+var RequiredSwarmAPIVersion = semver.MustParse("0.3.0")
 
 func Verify(options Options) (prettycli.Output, error) {
 
@@ -34,13 +36,25 @@ func verifyEndpoint(e Endpoint) error {
 	}
 
 	log.Infof("%s reported version %s", e.Name(), version)
-	semver, err := semver.Make(version)
-	if err != nil {
-		return fmt.Errorf("can't understand Docker version '%s'", version)
+
+	isSwarm := false
+	if strings.HasPrefix(version, "swarm/") {
+		isSwarm = true
+		parts := strings.Split(version, "/")
+		version = parts[1]
 	}
 
-	if semver.LT(RequredAPIVersion) {
-		return fmt.Errorf("Docker API must be %s or above, but it is %s", RequredAPIVersion, semver)
+	semver, err := semver.Make(version)
+	if err != nil {
+		return fmt.Errorf("can't understand version '%s'", version)
+	}
+
+	if isSwarm && semver.LT(RequiredSwarmAPIVersion) {
+		return fmt.Errorf("Swarm API must be %s or above, but it is %s", RequiredSwarmAPIVersion, semver)
+	}
+
+	if !isSwarm && semver.LT(RequiredDockerAPIVersion) {
+		return fmt.Errorf("Docker API must be %s or above, but it is %s", RequiredDockerAPIVersion, semver)
 	}
 
 	return nil
