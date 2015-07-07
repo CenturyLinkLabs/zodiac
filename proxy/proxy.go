@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"strings"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
@@ -37,10 +38,11 @@ func NewHTTPProxy(listenAt string) *HTTPProxy {
 
 func (p *HTTPProxy) Serve() error {
 	r := mux.NewRouter()
-	r.Path("/v1.15/containers/create").Methods("POST").HandlerFunc(p.create)
-	r.Path("/v1.15/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
-	r.Path("/v1.15/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
-	r.Path("/v1.15/containers/json").Methods("GET").HandlerFunc(p.listAll)
+	r.Path("/v1.18/containers/create").Methods("POST").HandlerFunc(p.create)
+	r.Path("/v1.18/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
+	r.Path("/v1.18/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
+	r.Path("/v1.18/containers/json").Methods("GET").HandlerFunc(p.listAll)
+	r.Path("/v1.18/images/{id:.*}/json").Methods("GET").HandlerFunc(p.inspectImage)
 
 	laddr, _ := net.ResolveTCPAddr("tcp", p.address)
 	listener, _ := net.ListenTCP("tcp", laddr)
@@ -86,7 +88,22 @@ func (p *HTTPProxy) create(w http.ResponseWriter, r *http.Request) {
 
 func (p *HTTPProxy) inspect(w http.ResponseWriter, r *http.Request) {
 	log.Infof("INSPECT request to %s", r.URL)
-	fmt.Fprintf(w, `{"Id":"doesnt_matter", "Name":"doesnt_matter"}`)
+	containerInfo := dockerclient.ContainerInfo{
+		Id:   "id_doesnt_matter",
+		Name: "name_doesnt_matter",
+		Config: &dockerclient.ContainerConfig{
+			Labels: map[string]string{
+				"com.docker.compose.container-number": "1",
+			},
+		},
+	}
+	j, err := json.Marshal(containerInfo)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(j)
 }
 
 func (p *HTTPProxy) start(w http.ResponseWriter, r *http.Request) {
@@ -97,14 +114,24 @@ func (p *HTTPProxy) start(w http.ResponseWriter, r *http.Request) {
 func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
 	log.Infof("LIST ALL request to %s", r.URL)
 
+	filters := r.URL.Query()["filters"]
+
+	name := filteredServiceName(filters)
+
 	containers := []dockerclient.Container{}
 
 	for _, req := range p.containerRequests {
-		containerInfo := dockerclient.Container{
-			Image: "doesntmatter",
-			Names: []string{req.Name},
+		if (filters == nil) || (extractReqName(req.Name) == name) {
+			container := dockerclient.Container{
+				Id:    "abc123",
+				Image: "doesntmatter",
+				Names: []string{req.Name},
+				Labels: map[string]string{
+					"com.docker.compose.container-number": "1",
+				},
+			}
+			containers = append(containers, container)
 		}
-		containers = append(containers, containerInfo)
 	}
 
 	j, err := json.Marshal(containers)
@@ -115,4 +142,37 @@ func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(j)
+}
+
+func (p *HTTPProxy) inspectImage(w http.ResponseWriter, r *http.Request) {
+	log.Infof("IMAGE INSPECT request to %s", r.URL)
+	img := &dockerclient.ImageInfo{}
+	jres, err := json.Marshal(img)
+	if err != nil {
+		p.errors = append(p.errors, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Fprintf(w, string(jres))
+}
+
+func extractReqName(reqName string) string {
+	parts := strings.Split(reqName, "_")
+	newParts := parts[1 : len(parts)-1]
+	return strings.Join(newParts, "_")
+}
+
+func filteredServiceName(filters []string) string {
+	if filters != nil {
+		filter := filters[0]
+		x := map[string][]string{}
+		json.Unmarshal([]byte(filter), &x)
+		for _, item := range x["label"] {
+			if strings.HasPrefix(item, "com.docker.compose.service") {
+				return strings.SplitAfterN(item, "=", 2)[1]
+			}
+		}
+	}
+	return ""
 }

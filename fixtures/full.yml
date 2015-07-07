@@ -24,6 +24,9 @@ foo:
   working_dir: /
   cpu_shares: 73
   mem_limit: 1000000000
+  labels:
+    foo: bar
+    bar: foo
 bar:
   image: centurylink/simple-server
   entrypoint: 
@@ -47,3 +50,16 @@ bar:
   privileged: false
   stdin_open: true
   tty: false 
+  labels:
+    - "foo=barr"
+    - "bar=foo"
+  extra_hosts:
+    - "hostname:127.0.0.1"
+    - "hostname2:127.0.0.1"
+  pid: "host"
+  cpuset: 0,1
+  read_only: true
+  security_opt:
+    - label:user:USER
+    - label:role:ROLE
+  log_driver: "syslog"
