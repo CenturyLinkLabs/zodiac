@@ -5,10 +5,6 @@ machine:
     GOPATH: /home/ubuntu/.go_workspace
     PKG_NAME: github.com/CenturyLinkLabs/zodiac
 
-general:
-  artifacts:
-    - zodiac
-
 checkout:
   post:
     - mkdir -p $(dirname $GOPATH/src/$PKG_NAME) 
@@ -20,7 +16,6 @@ dependencies:
     - curl -L https://github.com/docker/compose/releases/download/1.3.0/docker-compose-`uname -s`-`uname -m` > /home/ubuntu/.go_workspace/bin/docker-compose
 
     - chmod +x /home/ubuntu/.go_workspace/bin/docker-compose
-    - docker pull centurylink/golang-builder:latest
     - go get github.com/tools/godep
 
 test:
@@ -31,4 +26,6 @@ deployment:
   qa:
     branch: master
     commands:
-      - docker run -v $(pwd):/src centurylink/golang-builder:latest
+      - docker pull centurylink/golang-builder-cross:latest
+      - docker run -v $(pwd):/src centurylink/golang-builder-cross:latest
+      - mv ./zodiac-* $CIRCLE_ARTIFACTS
