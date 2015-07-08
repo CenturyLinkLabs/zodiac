@@ -85,7 +85,6 @@ Use the `zodiac help` command to see the options for passing in the necassary ce
 
 
 ## Desired features / fixes
-- [ ] Compose v1.3 support
 - [ ] Support for compose's `build` option
 - [ ] Support for compose's `volumes_from` option
 - [ ] Support for private repos on the Docker hub
