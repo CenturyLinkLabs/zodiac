@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/url"
+	"time"
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/samalba/dockerclient"
@@ -105,9 +106,17 @@ func (e *DockerEndpoint) Name() string {
 
 func (e *DockerEndpoint) StartContainer(name string, cc ContainerConfig) error {
 	dcc, _ := translateContainerConfig(cc)
-	id, err := e.client.CreateContainer(&dcc, name)
-	if err != nil {
-		log.Fatalf("Problem creating container: ", err)
+	var id string
+	for {
+		cid, err := e.client.CreateContainer(&dcc, name)
+		if err == nil {
+			id = cid
+			break
+		} else {
+			log.Infof("Problem creating container: ", err)
+			log.Infof("Retrying create...")
+			time.Sleep(5 * time.Second)
+		}
 	}
 
 	log.Infof("%s created as %s", name, id)
