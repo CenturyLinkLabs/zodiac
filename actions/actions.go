@@ -136,8 +136,14 @@ func (s FromStringOrBool) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.Value)
 }
 
-func collectRequests(options Options) ([]proxy.ContainerRequest, error) {
-	go DefaultProxy.Serve()
+func collectRequests(options Options, noBuild bool) ([]proxy.ContainerRequest, error) {
+	endpoint, err := endpointFactory(options.EndpointOptions)
+	if err != nil {
+		return nil, err
+	}
+	host := endpoint.Host()
+
+	go DefaultProxy.Serve(host, noBuild)
 	defer DefaultProxy.Stop()
 
 	if err := DefaultComposer.Run(options.Flags); err != nil {

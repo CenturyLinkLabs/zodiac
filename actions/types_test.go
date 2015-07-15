@@ -44,7 +44,7 @@ type mockProxy struct {
 	requests []proxy.ContainerRequest
 }
 
-func (p mockProxy) Serve() error {
+func (p mockProxy) Serve(endpointHost string, noBuild bool) error {
 	return nil
 }
 
