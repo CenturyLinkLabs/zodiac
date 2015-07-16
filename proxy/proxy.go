@@ -197,7 +197,13 @@ func (p *HTTPProxy) build(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
 	req.Header.Set("content-type", "application/tar")
 	c := http.Client{}
-	_, err = c.Do(req)
+	resp, err := c.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// NOTE: this is here to make sure it finishes
+	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
