@@ -193,12 +193,7 @@ func (p *HTTPProxy) build(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.URL.Host = p.endpoint.Host()
-	r.URL.Scheme = "http"
-	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
-	req.Header.Set("content-type", "application/tar")
-	c := http.Client{}
-	resp, err := c.Do(req)
+	resp, err := p.endpoint.DoRequest(r)
 	if err != nil {
 		log.Fatal(err)
 	}

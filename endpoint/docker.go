@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os/user"
 	"strings"
@@ -28,7 +29,12 @@ func NewEndpoint(endpointOpts EndpointOptions) (Endpoint, error) {
 		return nil, err
 	}
 
-	return &DockerEndpoint{url: endpointOpts.Host, client: c}, nil
+	return &DockerEndpoint{
+		url:       endpointOpts.Host,
+		client:    c,
+		tlsConfig: tlsConfig,
+		useTLS:    endpointOpts.TLS,
+	}, nil
 }
 
 type EndpointOptions struct {
@@ -102,6 +108,7 @@ type Endpoint interface {
 	Version() (string, error)
 	Name() string
 	Host() string
+	DoRequest(*http.Request) (*http.Response, error)
 	ResolveImage(string) (string, error)
 	StartContainer(name string, cc ContainerConfig) error
 	InspectContainer(name string) (*dockerclient.ContainerInfo, error)
@@ -109,8 +116,10 @@ type Endpoint interface {
 }
 
 type DockerEndpoint struct {
-	url    string
-	client dockerclient.Client
+	url       string
+	client    dockerclient.Client
+	tlsConfig *tls.Config
+	useTLS    bool
 }
 
 // TODO: can we ditch this? Should always have it on the client
@@ -176,9 +185,23 @@ func (e *DockerEndpoint) ResolveImage(name string) (string, error) {
 	return imageInfo.Id, nil
 }
 
-//func (e *DockerEndpoint) DoRequest(url string, body []byte) ([]byte, error) {
-
-//}
+func (e *DockerEndpoint) DoRequest(r *http.Request) (*http.Response, error) {
+	r.URL.Host = e.Host()
+	r.URL.Scheme = "http"
+	if e.useTLS {
+		r.URL.Scheme = "https"
+	}
+	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("content-type", "application/tar")
+	tr := &http.Transport{
+		TLSClientConfig: e.tlsConfig,
+	}
+	c := http.Client{Transport: tr}
+	return c.Do(req)
+}
 
 func (e *DockerEndpoint) InspectContainer(name string) (*dockerclient.ContainerInfo, error) {
 	return e.client.InspectContainer(name)
