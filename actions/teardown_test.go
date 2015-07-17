@@ -4,6 +4,7 @@ import (
 	_ "fmt"
 	"testing"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/stretchr/testify/assert"
 )
@@ -44,7 +45,7 @@ func TestTeardown_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 

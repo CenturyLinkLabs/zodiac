@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/CenturyLinkLabs/prettycli"
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,7 @@ func (e mockListEndpoint) InspectContainer(nm string) (*dockerclient.ContainerIn
 }
 
 func TestList_Success(t *testing.T) {
-	oldServiceConfig := ContainerConfig{}
+	oldServiceConfig := endpoint.ContainerConfig{}
 	oldServiceConfig.Image = "oldimage"
 
 	previousManis := []DeploymentManifest{
@@ -39,11 +40,11 @@ func TestList_Success(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "newService",
-					ContainerConfig: ContainerConfig{},
+					ContainerConfig: endpoint.ContainerConfig{},
 				},
 				{
 					Name:            "Another service",
-					ContainerConfig: ContainerConfig{},
+					ContainerConfig: endpoint.ContainerConfig{},
 				},
 			},
 		},
@@ -74,7 +75,7 @@ func TestList_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 

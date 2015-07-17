@@ -1,4 +1,4 @@
-package actions
+package endpoint
 
 import (
 	"encoding/json"

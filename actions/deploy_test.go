@@ -5,17 +5,18 @@ import (
 	_ "fmt"
 	"testing"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/stretchr/testify/assert"
 )
 
 type mockDeployEndpoint struct {
 	mockEndpoint
-	startCallback        func(string, ContainerConfig) error
+	startCallback        func(string, endpoint.ContainerConfig) error
 	resolveImageCallback func(string) (string, error)
 }
 
-func (e mockDeployEndpoint) StartContainer(nm string, cfg ContainerConfig) error {
+func (e mockDeployEndpoint) StartContainer(nm string, cfg endpoint.ContainerConfig) error {
 	return e.startCallback(nm, cfg)
 }
 
@@ -39,7 +40,7 @@ func TestDeploy_Success(t *testing.T) {
 	DefaultComposer = &mockComposer{}
 
 	e := mockDeployEndpoint{
-		startCallback: func(nm string, cfg ContainerConfig) error {
+		startCallback: func(nm string, cfg endpoint.ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -52,7 +53,7 @@ func TestDeploy_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 

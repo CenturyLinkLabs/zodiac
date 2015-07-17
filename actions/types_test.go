@@ -1,6 +1,9 @@
 package actions
 
 import (
+	"net/http"
+
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 	log "github.com/Sirupsen/logrus"
 	"github.com/samalba/dockerclient"
@@ -20,12 +23,16 @@ func (e mockEndpoint) Name() string {
 	return "fakeName that is really a URI"
 }
 
-func (e mockEndpoint) StartContainer(string, ContainerConfig) error {
+func (e mockEndpoint) StartContainer(string, endpoint.ContainerConfig) error {
 	return nil
 }
 
 func (e mockEndpoint) ResolveImage(imgNm string) (string, error) {
 	return "abc123", nil
+}
+
+func (e mockEndpoint) DoRequest(r *http.Request) (*http.Response, error) {
+	return nil, nil
 }
 
 func (e mockEndpoint) InspectContainer(name string) (*dockerclient.ContainerInfo, error) {
@@ -44,7 +51,7 @@ type mockProxy struct {
 	requests []proxy.ContainerRequest
 }
 
-func (p mockProxy) Serve(endpointHost string, noBuild bool) error {
+func (p mockProxy) Serve(ep endpoint.Endpoint, noBuild bool) error {
 	return nil
 }
 
@@ -64,5 +71,5 @@ func (c *mockComposer) Run(flags map[string]string) error {
 
 type capturedStartParams struct {
 	Name   string
-	Config ContainerConfig
+	Config endpoint.ContainerConfig
 }
