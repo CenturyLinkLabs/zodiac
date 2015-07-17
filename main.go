@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/CenturyLinkLabs/zodiac/actions"
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	log "github.com/Sirupsen/logrus"
 	"github.com/codegangsta/cli"
 )
@@ -197,7 +198,7 @@ func createHandler(z actions.Zodiaction) func(c *cli.Context) {
 			flags[flagName] = c.String(flagName)
 		}
 
-		eOpts := actions.EndpointOptions{
+		eOpts := endpoint.EndpointOptions{
 			Host:      c.GlobalString("endpoint"),
 			TLS:       c.GlobalBool("tls"),
 			TLSVerify: c.GlobalBool("tlsverify"),

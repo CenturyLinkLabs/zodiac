@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/samalba/dockerclient"
@@ -20,7 +21,7 @@ type ContainerRequest struct {
 }
 
 type Proxy interface {
-	Serve(string, bool) error
+	Serve(endpoint.Endpoint, bool) error
 	Stop() error
 	GetRequests() ([]ContainerRequest, error)
 }
@@ -31,7 +32,7 @@ type HTTPProxy struct {
 	listener           *net.TCPListener
 	errors             []error
 	imageInspectsCount map[string]int
-	endpointHost       string
+	endpoint           endpoint.Endpoint
 	noBuild            bool
 }
 
@@ -39,7 +40,7 @@ func NewHTTPProxy(listenAt string) *HTTPProxy {
 	return &HTTPProxy{address: listenAt}
 }
 
-func (p *HTTPProxy) Serve(endpointHost string, noBuild bool) error {
+func (p *HTTPProxy) Serve(endpoint endpoint.Endpoint, noBuild bool) error {
 	r := mux.NewRouter()
 	r.Path("/v1.18/containers/create").Methods("POST").HandlerFunc(p.create)
 	r.Path("/v1.18/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
@@ -55,7 +56,7 @@ func (p *HTTPProxy) Serve(endpointHost string, noBuild bool) error {
 	laddr, _ := net.ResolveTCPAddr("tcp", p.address)
 	listener, _ := net.ListenTCP("tcp", laddr)
 	p.listener = listener
-	p.endpointHost = endpointHost
+	p.endpoint = endpoint
 	p.noBuild = noBuild
 	return http.Serve(listener, r)
 }
@@ -192,7 +193,7 @@ func (p *HTTPProxy) build(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	r.URL.Host = p.endpointHost
+	r.URL.Host = p.endpoint.Host()
 	r.URL.Scheme = "http"
 	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
 	req.Header.Set("content-type", "application/tar")
