@@ -26,15 +26,17 @@ func TestTeardown_Success(t *testing.T) {
 
 	var removeCalls []string
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name: "zodiac_foo_1",
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name: "zodiac_foo_1",
+				},
+				{
+					Name: "zodiac_boo_2",
+				},
 			},
-			{
-				Name: "zodiac_boo_2",
-			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 

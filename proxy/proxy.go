@@ -20,8 +20,10 @@ type ContainerRequest struct {
 	CreateOptions []byte
 }
 
+type ProxyFactory func(string, endpoint.Endpoint, bool) Proxy
+
 type Proxy interface {
-	Serve(endpoint.Endpoint, bool) error
+	Serve() error
 	Stop() error
 	GetRequests() ([]ContainerRequest, error)
 }
@@ -36,11 +38,15 @@ type HTTPProxy struct {
 	noBuild            bool
 }
 
-func NewHTTPProxy(listenAt string) *HTTPProxy {
-	return &HTTPProxy{address: listenAt}
+func NewHTTPProxy(listenAt string, endpoint endpoint.Endpoint, noBuild bool) Proxy {
+	return &HTTPProxy{
+		address:  listenAt,
+		endpoint: endpoint,
+		noBuild:  noBuild,
+	}
 }
 
-func (p *HTTPProxy) Serve(endpoint endpoint.Endpoint, noBuild bool) error {
+func (p *HTTPProxy) Serve() error {
 	r := mux.NewRouter()
 	r.Path("/v1.18/containers/create").Methods("POST").HandlerFunc(p.create)
 	r.Path("/v1.18/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
@@ -56,8 +62,6 @@ func (p *HTTPProxy) Serve(endpoint endpoint.Endpoint, noBuild bool) error {
 	laddr, _ := net.ResolveTCPAddr("tcp", p.address)
 	listener, _ := net.ListenTCP("tcp", laddr)
 	p.listener = listener
-	p.endpoint = endpoint
-	p.noBuild = noBuild
 	return http.Serve(listener, r)
 }
 

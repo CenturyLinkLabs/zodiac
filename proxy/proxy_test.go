@@ -57,7 +57,7 @@ func TestCreate(t *testing.T) {
 		address: "localhost:61900",
 	}
 
-	go proxy.Serve(fakeEndpoint, false)
+	go proxy.Serve()
 	defer proxy.Stop()
 
 	resp, err := http.Post("http://localhost:61900/v1.18/containers/create?name=foo", "", strings.NewReader("bar"))
@@ -78,7 +78,7 @@ func TestInspect(t *testing.T) {
 		address: "localhost:61901",
 	}
 
-	go proxy.Serve(fakeEndpoint, false)
+	go proxy.Serve()
 	defer proxy.Stop()
 
 	resp, err := http.Get("http://localhost:61901/v1.18/containers/foo/json")
@@ -106,7 +106,7 @@ func TestStart(t *testing.T) {
 		address: "localhost:61902",
 	}
 
-	go proxy.Serve(fakeEndpoint, false)
+	go proxy.Serve()
 	defer proxy.Stop()
 
 	resp, err := http.Post("http://localhost:61902/v1.18/containers/foo/start", "", nil)
@@ -120,7 +120,7 @@ func TestListAll_NoContainersCreated(t *testing.T) {
 		address: "localhost:61903",
 	}
 
-	go proxy.Serve(fakeEndpoint, false)
+	go proxy.Serve()
 	defer proxy.Stop()
 
 	resp, err := http.Get("http://localhost:61903/v1.18/containers/json")
@@ -141,7 +141,7 @@ func TestListAll_WithContainersCreated(t *testing.T) {
 		},
 	}
 
-	go proxy.Serve(fakeEndpoint, false)
+	go proxy.Serve()
 	defer proxy.Stop()
 
 	resp, err := http.Get("http://localhost:61904/v1.18/containers/json")
@@ -168,7 +168,7 @@ func TestListAll_WithMatchingFilteredRequest(t *testing.T) {
 		},
 	}
 
-	go proxy.Serve(fakeEndpoint, false)
+	go proxy.Serve()
 	defer proxy.Stop()
 
 	query := url.QueryEscape(`{"label": ["com.docker.compose.project=zodiac", "com.docker.compose.service=fiz_biz", "com.docker.compose.oneoff=False"]}`)
@@ -196,7 +196,7 @@ func TestListAll_WithNonMatchingFilteredRequest(t *testing.T) {
 		},
 	}
 
-	go proxy.Serve(fakeEndpoint, false)
+	go proxy.Serve()
 	defer proxy.Stop()
 
 	query := url.QueryEscape(`{"label": ["com.docker.compose.project=zodiac", "com.docker.compose.service=DOES_NOT_MATCH", "com.docker.compose.oneoff=False"]}`)

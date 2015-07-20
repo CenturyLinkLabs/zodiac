@@ -16,15 +16,15 @@ const (
 )
 
 var (
-	DefaultProxy    proxy.Proxy
 	DefaultComposer composer.Composer
 	endpointFactory endpoint.EndpointFactory
+	proxyFactory    proxy.ProxyFactory
 )
 
 func init() {
-	DefaultProxy = proxy.NewHTTPProxy(ProxyAddress)
 	DefaultComposer = composer.NewExecComposer(ProxyAddress)
 	endpointFactory = endpoint.NewEndpoint
+	proxyFactory = proxy.NewHTTPProxy
 }
 
 type Options struct {
@@ -55,14 +55,16 @@ func collectRequests(options Options, noBuild bool) ([]proxy.ContainerRequest, e
 	}
 	ep := endpoint
 
-	go DefaultProxy.Serve(ep, noBuild)
-	defer DefaultProxy.Stop()
+	p := proxyFactory(ProxyAddress, ep, noBuild)
+
+	go p.Serve()
+	defer p.Stop()
 
 	if err := DefaultComposer.Run(options.Flags); err != nil {
 		return nil, err
 	}
 
-	return DefaultProxy.GetRequests()
+	return p.GetRequests()
 }
 
 func startServices(services []Service, manifests DeploymentManifests, endpoint endpoint.Endpoint) error {

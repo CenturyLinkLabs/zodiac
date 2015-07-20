@@ -68,13 +68,15 @@ func TestRollback_Success(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -146,13 +148,15 @@ func TestRollbackWithID_Success(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -208,13 +212,15 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -278,13 +284,15 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 

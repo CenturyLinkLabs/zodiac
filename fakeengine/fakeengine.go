@@ -19,6 +19,7 @@ func NewServer() *httptest.Server {
 	baseURL := "/" + dockerclient.APIVersion
 	r.HandleFunc(baseURL+"/version", handlerGetVersion).Methods("GET")
 	r.HandleFunc(baseURL+"/images/{name}/json", handleInspectImage).Methods("GET")
+	r.HandleFunc(baseURL+"/containers/{name}/json", handleInspectContainer).Methods("GET")
 	r.HandleFunc(baseURL+"/images/{org}/{name}/json", handleInspectImage).Methods("GET")
 	r.HandleFunc(baseURL+"/containers/create", handleCreateContainer).Methods("POST")
 	r.HandleFunc(baseURL+"/containers/{id}", handleDeleteContainer).Methods("DELETE")
@@ -56,6 +57,14 @@ func handlerGetVersion(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleInspectImage(w http.ResponseWriter, r *http.Request) {
+	writeHeaders(w, 200)
+	body := `{
+		"Id": "abc123"
+	}`
+	w.Write([]byte(body))
+}
+
+func handleInspectContainer(w http.ResponseWriter, r *http.Request) {
 	writeHeaders(w, 200)
 	body := `{
 		"Id": "abc123"
