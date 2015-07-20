@@ -1,7 +1,7 @@
 package actions
 
 import (
-	"net/http"
+	"io"
 
 	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
@@ -31,8 +31,8 @@ func (e mockEndpoint) ResolveImage(imgNm string) (string, error) {
 	return "abc123", nil
 }
 
-func (e mockEndpoint) DoRequest(r *http.Request) (*http.Response, error) {
-	return nil, nil
+func (e mockEndpoint) BuildImage(bctx io.Reader) error {
+	return nil
 }
 
 func (e mockEndpoint) InspectContainer(name string) (*dockerclient.ContainerInfo, error) {

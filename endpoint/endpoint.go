@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"io"
 	"io/ioutil"
-	"net/http"
 	"os/user"
 	"strings"
 
@@ -83,7 +83,7 @@ type Endpoint interface {
 	Version() (string, error)
 	Name() string
 	Host() string
-	DoRequest(*http.Request) (*http.Response, error)
+	BuildImage(io.Reader) error
 	ResolveImage(string) (string, error)
 	StartContainer(name string, cc ContainerConfig) error
 	InspectContainer(name string) (*dockerclient.ContainerInfo, error)

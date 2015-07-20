@@ -2,6 +2,9 @@ package endpoint
 
 import (
 	"crypto/tls"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"time"
@@ -25,7 +28,6 @@ func NewEndpoint(endpointOpts EndpointOptions) (Endpoint, error) {
 		url:       endpointOpts.Host,
 		client:    c,
 		tlsConfig: tlsConfig,
-		useTLS:    endpointOpts.TLS,
 	}, nil
 }
 
@@ -33,7 +35,6 @@ type DockerEndpoint struct {
 	url       string
 	client    dockerclient.Client
 	tlsConfig *tls.Config
-	useTLS    bool
 }
 
 // TODO: can we ditch this? Should always have it on the client
@@ -99,22 +100,30 @@ func (e *DockerEndpoint) ResolveImage(name string) (string, error) {
 	return imageInfo.Id, nil
 }
 
-func (e *DockerEndpoint) DoRequest(r *http.Request) (*http.Response, error) {
-	r.URL.Host = e.Host()
-	r.URL.Scheme = "http"
-	if e.useTLS {
-		r.URL.Scheme = "https"
+func (e *DockerEndpoint) BuildImage(buildContext io.Reader) error {
+	scheme := "https"
+	if e.tlsConfig == nil {
+		scheme = "http"
 	}
-	req, err := http.NewRequest(r.Method, r.URL.String(), r.Body)
+	url := fmt.Sprintf("%s://%s/%s/build", scheme, e.Host(), dockerclient.APIVersion)
+	req, err := http.NewRequest("POST", url, buildContext)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	req.Header.Set("content-type", "application/tar")
 	tr := &http.Transport{
 		TLSClientConfig: e.tlsConfig,
 	}
 	c := http.Client{Transport: tr}
-	return c.Do(req)
+	resp, err := c.Do(req)
+
+	if err != nil {
+		return err
+	}
+
+	// NOTE: this is here to make sure it finishes
+	_, err = ioutil.ReadAll(resp.Body)
+	return err
 }
 
 func (e *DockerEndpoint) InspectContainer(name string) (*dockerclient.ContainerInfo, error) {

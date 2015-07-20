@@ -188,20 +188,11 @@ func (p *HTTPProxy) createImage(w http.ResponseWriter, r *http.Request) {
 func (p *HTTPProxy) build(w http.ResponseWriter, r *http.Request) {
 	log.Infof("BUILD REQUEST to %s", r.URL)
 
-	if p.noBuild {
-		fmt.Fprintf(w, `{"stream":"Successfully built abc123\n"}`)
-		return
-	}
-
-	resp, err := p.endpoint.DoRequest(r)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// NOTE: this is here to make sure it finishes
-	_, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
+	if !p.noBuild {
+		err := p.endpoint.BuildImage(r.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	fmt.Fprintf(w, `{"stream":"Successfully built abc123\n"}`)
