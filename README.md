@@ -32,7 +32,7 @@ ID      DEPLOY DATE             SERVICES        MESSAGE
 ```
 
 ## Installation
-* Install [Docker Compose](http://docs.docker.com/compose/) **v1.2**. See: http://docs.docker.com/compose/
+* Install [Docker Compose](http://docs.docker.com/compose/) **v1.3**. See: http://docs.docker.com/compose/
 * Install the Zodiac Binary for your platform. See: https://github.com/CenturyLinkLabs/zodiac/releases/
 
 ## Usage
@@ -85,6 +85,6 @@ Use the `zodiac help` command to see the options for passing in the necassary ce
 
 
 ## Desired features / fixes
-- [ ] Support for compose's `build` option
+- [x] Support for compose's `build` option
 - [ ] Support for compose's `volumes_from` option
 - [ ] Support for private repos on the Docker hub

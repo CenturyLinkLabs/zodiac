@@ -3,13 +3,11 @@ package actions
 import (
 	"encoding/json"
 	"fmt"
-	"os/user"
-	"strings"
 
 	"github.com/CenturyLinkLabs/prettycli"
 	"github.com/CenturyLinkLabs/zodiac/composer"
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
-	"github.com/samalba/dockerclient"
 )
 
 const (
@@ -18,50 +16,21 @@ const (
 )
 
 var (
-	DefaultProxy    proxy.Proxy
 	DefaultComposer composer.Composer
+	endpointFactory endpoint.EndpointFactory
+	proxyFactory    proxy.ProxyFactory
 )
 
 func init() {
-	DefaultProxy = proxy.NewHTTPProxy(ProxyAddress)
 	DefaultComposer = composer.NewExecComposer(ProxyAddress)
+	endpointFactory = endpoint.NewEndpoint
+	proxyFactory = proxy.NewHTTPProxy
 }
 
 type Options struct {
 	Args            []string
 	Flags           map[string]string
-	EndpointOptions EndpointOptions
-}
-
-type EndpointOptions struct {
-	Host      string
-	TLS       bool
-	TLSVerify bool
-	TLSCaCert string
-	TLSCert   string
-	TLSKey    string
-}
-
-func (eo EndpointOptions) tlsCaCert() string {
-	return resolveHomeDirectory(eo.TLSCaCert)
-}
-
-func (eo EndpointOptions) tlsCert() string {
-	return resolveHomeDirectory(eo.TLSCert)
-}
-
-func (eo EndpointOptions) tlsKey() string {
-	return resolveHomeDirectory(eo.TLSKey)
-}
-
-func resolveHomeDirectory(path string) string {
-	if strings.Contains(path, "~") {
-		usr, _ := user.Current()
-		dir := usr.HomeDir
-		return strings.Replace(path, "~", dir, 1)
-	}
-
-	return path
+	EndpointOptions endpoint.EndpointOptions
 }
 
 type Zodiaction func(Options) (prettycli.Output, error)
@@ -76,78 +45,29 @@ type DeploymentManifest struct {
 
 type Service struct {
 	Name            string
-	ContainerConfig ContainerConfig
+	ContainerConfig endpoint.ContainerConfig
 }
 
-type ContainerConfig struct {
-	dockerclient.ContainerConfig
-	Tty        FromStringOrBool
-	OpenStdin  FromStringOrBool
-	Entrypoint FromStringOrStringSlice
-	// This is used only by the create command
-	HostConfig HostConfig
-}
-
-type HostConfig struct {
-	dockerclient.HostConfig
-	Privileged     FromStringOrBool
-	ReadonlyRootfs FromStringOrBool
-}
-
-type FromStringOrStringSlice struct {
-	Value []string
-}
-
-func (s *FromStringOrStringSlice) UnmarshalJSON(value []byte) error {
-	if value[0] == '"' {
-		var str string
-		if err := json.Unmarshal(value, &str); err != nil {
-			return err
-		}
-		s.Value = strings.Split(str, " ")
-		return nil
+func collectRequests(options Options, noBuild bool) ([]proxy.ContainerRequest, error) {
+	endpoint, err := endpointFactory(options.EndpointOptions)
+	if err != nil {
+		return nil, err
 	}
+	ep := endpoint
 
-	return json.Unmarshal(value, &s.Value)
-}
+	p := proxyFactory(ProxyAddress, ep, noBuild)
 
-func (s FromStringOrStringSlice) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.Value)
-}
-
-type FromStringOrBool struct {
-	Value bool
-}
-
-func (s *FromStringOrBool) UnmarshalJSON(value []byte) error {
-	if value[0] == '"' {
-		var str string
-		if err := json.Unmarshal(value, &str); err != nil {
-			return err
-		}
-		s.Value = (strings.ToLower(str) == "true")
-		return nil
-	}
-
-	return json.Unmarshal(value, &s.Value)
-}
-
-func (s FromStringOrBool) MarshalJSON() ([]byte, error) {
-	return json.Marshal(s.Value)
-}
-
-func collectRequests(options Options) ([]proxy.ContainerRequest, error) {
-	go DefaultProxy.Serve()
-	defer DefaultProxy.Stop()
+	go p.Serve()
+	defer p.Stop()
 
 	if err := DefaultComposer.Run(options.Flags); err != nil {
 		return nil, err
 	}
 
-	return DefaultProxy.GetRequests()
+	return p.GetRequests()
 }
 
-func startServices(services []Service, manifests DeploymentManifests, endpoint Endpoint) error {
+func startServices(services []Service, manifests DeploymentManifests, endpoint endpoint.Endpoint) error {
 	manifestsBlob, err := json.Marshal(manifests)
 	if err != nil {
 		return err
@@ -169,7 +89,7 @@ func startServices(services []Service, manifests DeploymentManifests, endpoint E
 	return nil
 }
 
-func getDeploymentManifests(reqs []proxy.ContainerRequest, endpoint Endpoint) (DeploymentManifests, error) {
+func getDeploymentManifests(reqs []proxy.ContainerRequest, endpoint endpoint.Endpoint) (DeploymentManifests, error) {
 	var manifests DeploymentManifests
 	var inspectError error
 

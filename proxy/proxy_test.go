@@ -10,9 +10,18 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/assert"
 )
+
+var (
+	fakeEndpoint endpoint.Endpoint
+)
+
+func init() {
+	fakeEndpoint = &endpoint.DockerEndpoint{}
+}
 
 func TestGetRequests_WithNoErrors(t *testing.T) {
 	proxy := HTTPProxy{

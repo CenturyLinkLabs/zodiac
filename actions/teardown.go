@@ -13,7 +13,7 @@ func Teardown(options Options) (prettycli.Output, error) {
 		return nil, err
 	}
 
-	reqs, err := collectRequests(options)
+	reqs, err := collectRequests(options, true)
 	if err != nil {
 		return nil, err
 	}
