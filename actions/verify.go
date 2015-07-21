@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/CenturyLinkLabs/prettycli"
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	log "github.com/Sirupsen/logrus"
 	"github.com/blang/semver"
 )
@@ -29,7 +30,7 @@ func Verify(options Options) (prettycli.Output, error) {
 	return prettycli.PlainOutput{s}, nil
 }
 
-func verifyEndpoint(e Endpoint) error {
+func verifyEndpoint(e endpoint.Endpoint) error {
 	version, err := e.Version()
 	if err != nil {
 		return err

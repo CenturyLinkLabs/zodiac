@@ -17,7 +17,7 @@ func Rollback(options Options) (prettycli.Output, error) {
 		return nil, err
 	}
 
-	reqs, err := collectRequests(options)
+	reqs, err := collectRequests(options, false)
 	if err != nil {
 		return nil, err
 	}

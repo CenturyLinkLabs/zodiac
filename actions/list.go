@@ -19,7 +19,7 @@ func List(options Options) (prettycli.Output, error) {
 		Labels: []string{"ID", "Deploy Date", "Services", "Message"},
 	}
 
-	reqs, err := collectRequests(options)
+	reqs, err := collectRequests(options, true)
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -27,7 +28,7 @@ func (e mockVerifyEndpoint) Name() string {
 
 func TestVerify_Success(t *testing.T) {
 	e := mockVerifyEndpoint{version: "1.6.1", url: "http://foo.bar"}
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 	o, err := Verify(Options{})
@@ -38,7 +39,7 @@ func TestVerify_Success(t *testing.T) {
 
 func TestVerify_ErroredOldVersion(t *testing.T) {
 	e := mockVerifyEndpoint{version: "1.5.0"}
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 	o, err := Verify(Options{})
@@ -49,7 +50,7 @@ func TestVerify_ErroredOldVersion(t *testing.T) {
 
 func TestVerify_ErroredCrazyVersion(t *testing.T) {
 	e := mockVerifyEndpoint{version: "eleventy-billion"}
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 	o, err := Verify(Options{})
@@ -60,7 +61,7 @@ func TestVerify_ErroredCrazyVersion(t *testing.T) {
 
 func TestVerify_ErroredAPIError(t *testing.T) {
 	e := mockVerifyEndpoint{ErrorForVersion: errors.New("test error")}
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 	o, err := Verify(Options{})
@@ -71,7 +72,7 @@ func TestVerify_ErroredAPIError(t *testing.T) {
 
 func TestVerify_SwarmSuccess(t *testing.T) {
 	e := mockVerifyEndpoint{version: "swarm/1.6.1", url: "http://foo.bar"}
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 	o, err := Verify(Options{})
@@ -82,7 +83,7 @@ func TestVerify_SwarmSuccess(t *testing.T) {
 
 func TestVerify_SwarmOldVersion(t *testing.T) {
 	e := mockVerifyEndpoint{version: "swarm/0.2.1", url: "http://foo.bar"}
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 	o, err := Verify(Options{})

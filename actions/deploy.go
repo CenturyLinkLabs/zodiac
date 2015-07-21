@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/CenturyLinkLabs/prettycli"
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 )
 
@@ -17,7 +18,7 @@ func Deploy(options Options) (prettycli.Output, error) {
 		return nil, err
 	}
 
-	reqs, err := collectRequests(options)
+	reqs, err := collectRequests(options, false)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func Deploy(options Options) (prettycli.Output, error) {
 }
 
 func serviceForRequest(req proxy.ContainerRequest) (Service, error) {
-	var cc ContainerConfig
+	var cc endpoint.ContainerConfig
 
 	if err := json.Unmarshal(req.CreateOptions, &cc); err != nil {
 		return Service{}, err

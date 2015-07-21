@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/samalba/dockerclient"
@@ -19,6 +20,8 @@ type ContainerRequest struct {
 	CreateOptions []byte
 }
 
+type ProxyFactory func(string, endpoint.Endpoint, bool) Proxy
+
 type Proxy interface {
 	Serve() error
 	Stop() error
@@ -26,14 +29,21 @@ type Proxy interface {
 }
 
 type HTTPProxy struct {
-	address           string
-	containerRequests []ContainerRequest
-	listener          *net.TCPListener
-	errors            []error
+	address            string
+	containerRequests  []ContainerRequest
+	listener           *net.TCPListener
+	errors             []error
+	imageInspectsCount map[string]int
+	endpoint           endpoint.Endpoint
+	noBuild            bool
 }
 
-func NewHTTPProxy(listenAt string) *HTTPProxy {
-	return &HTTPProxy{address: listenAt}
+func NewHTTPProxy(listenAt string, endpoint endpoint.Endpoint, noBuild bool) Proxy {
+	return &HTTPProxy{
+		address:  listenAt,
+		endpoint: endpoint,
+		noBuild:  noBuild,
+	}
 }
 
 func (p *HTTPProxy) Serve() error {
@@ -43,6 +53,11 @@ func (p *HTTPProxy) Serve() error {
 	r.Path("/v1.18/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
 	r.Path("/v1.18/containers/json").Methods("GET").HandlerFunc(p.listAll)
 	r.Path("/v1.18/images/{id:.*}/json").Methods("GET").HandlerFunc(p.inspectImage)
+	r.Path("/v1.18/build").Methods("POST").HandlerFunc(p.build)
+	r.Path("/v1.18/images/create").Methods("POST").HandlerFunc(p.createImage)
+	r.Path("/{rest:.*}").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Infof("Unhandled request to: %s\n\n", r.URL)
+	})
 
 	laddr, _ := net.ResolveTCPAddr("tcp", p.address)
 	listener, _ := net.ListenTCP("tcp", laddr)
@@ -146,6 +161,12 @@ func (p *HTTPProxy) listAll(w http.ResponseWriter, r *http.Request) {
 
 func (p *HTTPProxy) inspectImage(w http.ResponseWriter, r *http.Request) {
 	log.Infof("IMAGE INSPECT request to %s", r.URL)
+	id := mux.Vars(r)["id"]
+	if p.imageInspectsCount == nil {
+		p.imageInspectsCount = make(map[string]int)
+	}
+	p.imageInspectsCount[id] = p.imageInspectsCount[id] + 1
+
 	img := &dockerclient.ImageInfo{}
 	jres, err := json.Marshal(img)
 	if err != nil {
@@ -154,7 +175,31 @@ func (p *HTTPProxy) inspectImage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, string(jres))
+	if p.noBuild || p.imageInspectsCount[id] > 1 {
+		fmt.Fprintf(w, string(jres))
+	} else {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprintf(w, "No such image: doesnt_matter")
+	}
+}
+
+func (p *HTTPProxy) createImage(w http.ResponseWriter, r *http.Request) {
+	log.Infof("IMAGE CREATE REQUEST to %s", r.URL)
+
+	fmt.Fprintf(w, `{}`)
+}
+
+func (p *HTTPProxy) build(w http.ResponseWriter, r *http.Request) {
+	log.Infof("BUILD REQUEST to %s", r.URL)
+
+	if !p.noBuild {
+		err := p.endpoint.BuildImage(r.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	fmt.Fprintf(w, `{"stream":"Successfully built abc123\n"}`)
 }
 
 func extractReqName(reqName string) string {

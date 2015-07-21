@@ -5,6 +5,7 @@ import (
 	_ "fmt"
 	"testing"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/samalba/dockerclient"
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,7 @@ import (
 type mockRollbackEndpoint struct {
 	mockEndpoint
 	inspectCallback func(string) (*dockerclient.ContainerInfo, error)
-	startCallback   func(string, ContainerConfig) error
+	startCallback   func(string, endpoint.ContainerConfig) error
 	removeCallback  func(string) error
 }
 
@@ -21,7 +22,7 @@ func (e mockRollbackEndpoint) InspectContainer(nm string) (*dockerclient.Contain
 	return e.inspectCallback(nm)
 }
 
-func (e mockRollbackEndpoint) StartContainer(nm string, cfg ContainerConfig) error {
+func (e mockRollbackEndpoint) StartContainer(nm string, cfg endpoint.ContainerConfig) error {
 	return e.startCallback(nm, cfg)
 }
 
@@ -36,7 +37,7 @@ func (e mockRollbackEndpoint) RemoveContainer(nm string) error {
 func TestRollback_Success(t *testing.T) {
 
 	var startCalls []capturedStartParams
-	oldServiceConfig := ContainerConfig{}
+	oldServiceConfig := endpoint.ContainerConfig{}
 	oldServiceConfig.Image = "oldimage"
 
 	previousManis := []DeploymentManifest{
@@ -52,7 +53,7 @@ func TestRollback_Success(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "newService",
-					ContainerConfig: ContainerConfig{},
+					ContainerConfig: endpoint.ContainerConfig{},
 				},
 			},
 		},
@@ -67,13 +68,15 @@ func TestRollback_Success(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -81,7 +84,7 @@ func TestRollback_Success(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg ContainerConfig) error {
+		startCallback: func(nm string, cfg endpoint.ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -90,7 +93,7 @@ func TestRollback_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 
@@ -115,7 +118,7 @@ func TestRollback_Success(t *testing.T) {
 func TestRollbackWithID_Success(t *testing.T) {
 
 	var startCalls []capturedStartParams
-	oldServiceConfig := ContainerConfig{}
+	oldServiceConfig := endpoint.ContainerConfig{}
 	oldServiceConfig.Image = "oldimage"
 	previousManis := []DeploymentManifest{
 		{
@@ -130,7 +133,7 @@ func TestRollbackWithID_Success(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "newService",
-					ContainerConfig: ContainerConfig{},
+					ContainerConfig: endpoint.ContainerConfig{},
 				},
 			},
 		},
@@ -145,13 +148,15 @@ func TestRollbackWithID_Success(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -159,7 +164,7 @@ func TestRollbackWithID_Success(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg ContainerConfig) error {
+		startCallback: func(nm string, cfg endpoint.ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -168,7 +173,7 @@ func TestRollbackWithID_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 
@@ -192,7 +197,7 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "OnlyDeployment",
-					ContainerConfig: ContainerConfig{},
+					ContainerConfig: endpoint.ContainerConfig{},
 				},
 			},
 		},
@@ -207,13 +212,15 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -221,7 +228,7 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg ContainerConfig) error {
+		startCallback: func(nm string, cfg endpoint.ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -234,7 +241,7 @@ func TestRollbackWithNoPreviousDeployment_Error(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 
@@ -254,7 +261,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "First Deplyment",
-					ContainerConfig: ContainerConfig{},
+					ContainerConfig: endpoint.ContainerConfig{},
 				},
 			},
 		},
@@ -262,7 +269,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 			Services: []Service{
 				{
 					Name:            "Second Deployment",
-					ContainerConfig: ContainerConfig{},
+					ContainerConfig: endpoint.ContainerConfig{},
 				},
 			},
 		},
@@ -277,13 +284,15 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 		},
 	}
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name:          "zodiac_foo_1",
-				CreateOptions: []byte(`{"Image": "zodiac"}`),
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name:          "zodiac_foo_1",
+					CreateOptions: []byte(`{"Image": "zodiac"}`),
+				},
 			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -291,7 +300,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 		inspectCallback: func(nm string) (*dockerclient.ContainerInfo, error) {
 			return &ci, nil
 		},
-		startCallback: func(nm string, cfg ContainerConfig) error {
+		startCallback: func(nm string, cfg endpoint.ContainerConfig) error {
 			startCalls = append(startCalls, capturedStartParams{
 				Name:   nm,
 				Config: cfg,
@@ -304,7 +313,7 @@ func TestRollbackWithNonexistingID_Error(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 

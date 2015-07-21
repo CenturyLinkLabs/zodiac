@@ -4,6 +4,7 @@ import (
 	_ "fmt"
 	"testing"
 
+	"github.com/CenturyLinkLabs/zodiac/endpoint"
 	"github.com/CenturyLinkLabs/zodiac/proxy"
 	"github.com/stretchr/testify/assert"
 )
@@ -25,15 +26,17 @@ func TestTeardown_Success(t *testing.T) {
 
 	var removeCalls []string
 
-	DefaultProxy = &mockProxy{
-		requests: []proxy.ContainerRequest{
-			{
-				Name: "zodiac_foo_1",
+	proxyFactory = func(string, endpoint.Endpoint, bool) proxy.Proxy {
+		return &mockProxy{
+			requests: []proxy.ContainerRequest{
+				{
+					Name: "zodiac_foo_1",
+				},
+				{
+					Name: "zodiac_boo_2",
+				},
 			},
-			{
-				Name: "zodiac_boo_2",
-			},
-		},
+		}
 	}
 	DefaultComposer = &mockComposer{}
 
@@ -44,7 +47,7 @@ func TestTeardown_Success(t *testing.T) {
 		},
 	}
 
-	endpointFactory = func(EndpointOptions) (Endpoint, error) {
+	endpointFactory = func(endpoint.EndpointOptions) (endpoint.Endpoint, error) {
 		return e, nil
 	}
 
