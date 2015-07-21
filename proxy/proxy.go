@@ -191,9 +191,10 @@ func (p *HTTPProxy) createImage(w http.ResponseWriter, r *http.Request) {
 
 func (p *HTTPProxy) build(w http.ResponseWriter, r *http.Request) {
 	log.Infof("BUILD REQUEST to %s", r.URL)
+	svcName := r.URL.Query()["t"][0]
 
 	if !p.noBuild {
-		err := p.endpoint.BuildImage(r.Body)
+		err := p.endpoint.BuildImage(r.Body, svcName)
 		if err != nil {
 			log.Fatal(err)
 		}

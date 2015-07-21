@@ -100,12 +100,13 @@ func (e *DockerEndpoint) ResolveImage(name string) (string, error) {
 	return imageInfo.Id, nil
 }
 
-func (e *DockerEndpoint) BuildImage(buildContext io.Reader) error {
+func (e *DockerEndpoint) BuildImage(buildContext io.Reader, svcName string) error {
 	scheme := "https"
 	if e.tlsConfig == nil {
 		scheme = "http"
 	}
-	url := fmt.Sprintf("%s://%s/%s/build", scheme, e.Host(), dockerclient.APIVersion)
+	//url := fmt.Sprintf("%s://%s/%s/build", scheme, e.Host(), dockerclient.APIVersion)
+	url := fmt.Sprintf("%s://%s/%s/build?pull=False&nocache=False&q=False&t=%s&forcerm=False&rm=True", scheme, e.Host(), dockerclient.APIVersion, svcName)
 	req, err := http.NewRequest("POST", url, buildContext)
 	if err != nil {
 		return err

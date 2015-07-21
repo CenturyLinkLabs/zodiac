@@ -83,7 +83,7 @@ type Endpoint interface {
 	Version() (string, error)
 	Name() string
 	Host() string
-	BuildImage(io.Reader) error
+	BuildImage(io.Reader, string) error
 	ResolveImage(string) (string, error)
 	StartContainer(name string, cc ContainerConfig) error
 	InspectContainer(name string) (*dockerclient.ContainerInfo, error)

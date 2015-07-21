@@ -31,7 +31,7 @@ func (e mockEndpoint) ResolveImage(imgNm string) (string, error) {
 	return "abc123", nil
 }
 
-func (e mockEndpoint) BuildImage(bctx io.Reader) error {
+func (e mockEndpoint) BuildImage(bctx io.Reader, sn string) error {
 	return nil
 }
 
