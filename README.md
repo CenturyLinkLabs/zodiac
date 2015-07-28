@@ -1,6 +1,7 @@
-# zodiac
+![Zodiac](http://panamax.ca.tier3.io/logos/logo_zodiac.png)
 
-A lightweight tool, built on top of [Docker Compose](https://docs.docker.com/compose/), for tactical deployment of a dockerized application (or, Docker Compose with rollback support).
+
+A lightweight tool, built on top of [Docker Compose](https://docs.docker.com/compose/), for "tactical" deployment of a dockerized application (or, Docker Compose with rollback support).
 
 Zodiac allows you to deploy Docker Compose applications while maintaining a history of all deployments. 
 Among other things, this allows you to rollback to a previous, known-good deployment in the event that there are issues with your current build.
