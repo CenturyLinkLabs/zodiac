@@ -36,6 +36,12 @@ ID      DEPLOY DATE             SERVICES        MESSAGE
 * Install [Docker Compose](http://docs.docker.com/compose/) **v1.3**. See: http://docs.docker.com/compose/
 * Install the Zodiac Binary for your platform. See: https://github.com/CenturyLinkLabs/zodiac/releases/
 
+or if you're a risk taker:
+
+```
+curl -sSL https://raw.githubusercontent.com/CenturyLinkLabs/zodiac/master/install.sh | bash
+```
+
 ## Usage
 
 The zodiac client supports the following commands:
