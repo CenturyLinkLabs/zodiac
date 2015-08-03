@@ -75,10 +75,11 @@ func init() {
 			},
 		},
 		{
-			Name:   "list",
-			Usage:  "List all known deployments",
-			Action: createHandler(actions.List),
-			Before: requireCluster,
+			Name:    "list",
+			Aliases: []string{"history"},
+			Usage:   "List all known deployments",
+			Action:  createHandler(actions.List),
+			Before:  requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "name, n",
