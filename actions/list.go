@@ -16,7 +16,7 @@ func List(options Options) (prettycli.Output, error) {
 	}
 
 	output := prettycli.ListOutput{
-		Labels: []string{"ID", "Deploy Date", "Services", "Message"},
+		Labels: []string{"Active", "ID", "Deploy Date", "Services", "Message"},
 	}
 
 	reqs, err := collectRequests(options, true)
@@ -38,7 +38,13 @@ func List(options Options) (prettycli.Output, error) {
 			serviceList = append(serviceList, svc.Name)
 		}
 
+		var isActive string
+		if i == (len(manifests) - 1) {
+			isActive = "*"
+		}
+
 		output.AddRow(map[string]string{
+			"Active":      isActive,
 			"ID":          strconv.Itoa(i + 1),
 			"Deploy Date": mani.DeployedAt,
 			"Services":    strings.Join(serviceList, ", "),
