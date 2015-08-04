@@ -52,6 +52,8 @@ The zodiac client supports the following commands:
 * `list` - list all previous application deployments.
 * `teardown` - remove running services and deployment history for the application.
 
+**NOTE:** Zodiac stores all deployment history on the containers, so manually removing containers can destroy all Zodiac history.
+
 ### Global Options
 
 The following flags apply to all of the Zodiac commands:
