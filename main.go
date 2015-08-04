@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/CenturyLinkLabs/zodiac/actions"
 	"github.com/CenturyLinkLabs/zodiac/endpoint"
@@ -97,7 +98,7 @@ func init() {
 		{
 			Name:   "teardown",
 			Usage:  "Remove running services and deployment history for this application",
-			Action: createHandler(actions.Teardown),
+			Action: createHandlerWithConfirm(actions.Teardown, "Are you sure you want to remove the deployment and all history?"),
 			Before: requireCluster,
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -110,6 +111,11 @@ func init() {
 					Name:  "file, f",
 					Usage: "Specify an alternate compose file",
 					Value: "docker-compose.yml",
+				},
+				cli.StringFlag{
+					Name:  "confirm, c",
+					Usage: "specify confirmation up front instead of waiting for prompt",
+					Value: "y/N",
 				},
 			},
 		},
@@ -190,36 +196,65 @@ func requireCluster(c *cli.Context) error {
 	return nil
 }
 
+func createHandlerWithConfirm(z actions.Zodiaction, msg string) func(c *cli.Context) {
+	return func(c *cli.Context) {
+		cfrm := strings.ToLower(c.String("confirm"))
+
+		if cfrm == "y" || cfrm == "yes" {
+			handler(z, c)
+		} else {
+			fmt.Println(fmt.Sprintf("%s (y/N)", msg))
+			var response string
+			_, err := fmt.Scanln(&response)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			response = strings.ToLower(response)
+
+			if response != "y" && response != "yes" {
+				fmt.Println("Cancelled")
+			} else {
+				handler(z, c)
+			}
+		}
+	}
+}
+
 func createHandler(z actions.Zodiaction) func(c *cli.Context) {
 	return func(c *cli.Context) {
-		flags := map[string]string{}
-
-		//TODO: is this a codegangsta bug, GlobalFlagNames?
-		for _, flagName := range c.GlobalFlagNames() {
-			flags[flagName] = c.String(flagName)
-		}
-
-		eOpts := endpoint.EndpointOptions{
-			Host:      c.GlobalString("endpoint"),
-			TLS:       c.GlobalBool("tls"),
-			TLSVerify: c.GlobalBool("tlsverify"),
-			TLSCaCert: c.GlobalString("tlscacert"),
-			TLSCert:   c.GlobalString("tlscert"),
-			TLSKey:    c.GlobalString("tlskey"),
-		}
-
-		actionOpts := actions.Options{
-			Args:            c.Args(),
-			Flags:           flags,
-			EndpointOptions: eOpts,
-		}
-
-		o, err := z(actionOpts)
-		if err != nil {
-			fmt.Printf("Error: %s\n", err)
-			os.Exit(1)
-		}
-
-		fmt.Println(o.ToPrettyOutput())
+		handler(z, c)
 	}
+}
+
+func handler(z actions.Zodiaction, c *cli.Context) {
+	flags := map[string]string{}
+
+	//TODO: is this a codegangsta bug, GlobalFlagNames?
+	for _, flagName := range c.GlobalFlagNames() {
+		flags[flagName] = c.String(flagName)
+	}
+
+	eOpts := endpoint.EndpointOptions{
+		Host:      c.GlobalString("endpoint"),
+		TLS:       c.GlobalBool("tls"),
+		TLSVerify: c.GlobalBool("tlsverify"),
+		TLSCaCert: c.GlobalString("tlscacert"),
+		TLSCert:   c.GlobalString("tlscert"),
+		TLSKey:    c.GlobalString("tlskey"),
+	}
+
+	actionOpts := actions.Options{
+		Args:            c.Args(),
+		Flags:           flags,
+		EndpointOptions: eOpts,
+	}
+
+	o, err := z(actionOpts)
+	if err != nil {
+		fmt.Printf("Error: %s\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println(o.ToPrettyOutput())
 }

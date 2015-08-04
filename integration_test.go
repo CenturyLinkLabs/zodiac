@@ -94,3 +94,28 @@ func TestDeploy_Successful(t *testing.T) {
 	assert.Contains(t, r.Stdout(), "Successfully deployed 2 container(s)")
 	assert.Empty(t, r.Stderr())
 }
+
+func TestTeardown_Prompt(t *testing.T) {
+	setup(t)
+	s, endpointFlag := newFakeServerAndFlag()
+	defer s.Close()
+
+	r := b.Run(t, TLSFlag, endpointFlag, "teardown", "-f", "fixtures/webapp.yml")
+	fmt.Println(r.Stderr())
+	fmt.Println(r.Stdout())
+	r.AssertExitCode(1)
+	assert.Contains(t, r.Stdout(), "Are you sure you want to remove the deployment and all history? (y/N)")
+}
+
+func TestTeardown_Success(t *testing.T) {
+	setup(t)
+	s, endpointFlag := newFakeServerAndFlag()
+	defer s.Close()
+
+	r := b.Run(t, TLSFlag, endpointFlag, "teardown", "-f", "fixtures/webapp.yml", "-c", "yes")
+	fmt.Println(r.Stderr())
+	fmt.Println(r.Stdout())
+	r.AssertSuccessful()
+	assert.Contains(t, r.Stdout(), "Successfully removed 2 services and all deployment history")
+	assert.Empty(t, r.Stderr())
+}
