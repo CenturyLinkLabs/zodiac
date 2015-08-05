@@ -15,7 +15,7 @@ web:
     - "8888:8888"
 ```
 
-Using Zodiac to deploy this application would look like this:
+Using Zodiac to deploy this application:
 
 ```
 $ zodiac deploy
@@ -24,18 +24,41 @@ Creating zodiac_web_1
 Successfully deployed 1 container(s)
 ```
 
-You can view your previous deployments using the `list` command:
+View your deployment using the `list` command:
 
 ```
 $ zodiac list
-ID      DEPLOY DATE             SERVICES        MESSAGE
-1       2015-06-30 00:40:27     zodiac_web_1
+ACTIVE ID      DEPLOY DATE             SERVICES        MESSAGE
+*      1       2015-06-30 00:40:27     zodiac_web_1
+```
+
+You changed your image and deploy again. The first deployment is retained:
+
+```
+$ zodiac list
+ACTIVE ID      DEPLOY DATE             SERVICES        MESSAGE
+*      2       2015-06-30 00:55:12     zodiac_web_1
+       1       2015-06-30 00:40:27     zodiac_web_1
+```
+
+Rollback to the first deployment if needed:
+
+```
+$ zodiac rollback 1
+Rolling back your application...
+Creating zodiac_web_1
+Successfully rolled back to deployment: 1
+$ zodiac list
+ACTIVE ID      DEPLOY DATE             SERVICES        MESSAGE
+*      3       2015-06-30 00:56:09     zodiac_web_1    Rollback to: #1
+       2       2015-06-30 00:55:12     zodiac_web_1
+       1       2015-06-30 00:40:27     zodiac_web_1
 ```
 
 ## Installation
 
 ### Readying the remote environment
-While Zodiac can be used just locally, most will be pointing it at a remote environment. In that case zodiac needs to be able to communicate with the docker daemon on that remote host. __We strongly encourage the use of Docker Machine__ for provisioning and installing Docker on the remote host. Zodiac is designed to work out of the box with a Machine-provisioned endpoint. However, one can also set `DOCKER_OPTS` manually on the remote host. Instructions for setting `DOCKER_OPTS` at runtime will vary by OS.
+While Zodiac can be used just locally, we recommend pointing it at a remote environment. In that case Zodiac needs to be able to communicate with the docker daemon on that remote host. __We strongly encourage the use of Docker Machine__ for provisioning and installing Docker on the remote host. Zodiac is designed to work out of the box with a Machine-provisioned endpoint. However, one can also set `DOCKER_OPTS` manually on the remote host. Instructions for setting `DOCKER_OPTS` at runtime will vary by OS.
 
 
 
