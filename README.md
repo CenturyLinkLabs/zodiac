@@ -70,6 +70,10 @@ The following flags apply to all of the Zodiac commands:
 
 For more information about the various TLS flags, see the TLS section below.
 
+## Remote Target Configuration
+
+The remote Docker host must be exposed over a TCP port to enable remote communication from the local Zodiac CLI. This is typically done by setting DOCKER_OPTS to something like: `DOCKER_OPTS="-H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock"`. It's worth noting that Docker Machine will do this for you.
+
 ### TLS
 If you are going to use Zodiac to deploy to remote hosts you will want to ensure that your remote Docker daemon is protected with TLS security.
 Zodiac ships with TLS support out of the box. Both host verification and client authentication are done via TLS.
