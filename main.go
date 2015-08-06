@@ -206,11 +206,11 @@ func createHandlerWithConfirm(z actions.Zodiaction, msg string) func(c *cli.Cont
 			fmt.Println(fmt.Sprintf("%s (y/N)", msg))
 			var response string
 			_, err := fmt.Scanln(&response)
-			if err != nil {
+			if err != nil && err.Error() != "unexpected newline" {
 				log.Fatal(err)
 			}
 
-			response = strings.ToLower(response)
+			response = strings.ToLower(strings.TrimSpace(response))
 
 			if response != "y" && response != "yes" {
 				fmt.Println("Cancelled")
