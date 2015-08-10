@@ -63,7 +63,7 @@ function checkForZodiac {
   if [[ "$?" -ne "0" ]]; then
     installZodiac
   else
-    zodiac -v | grep -w '0.2.0' 2>&1 >/dev/null
+    zodiac -v | grep -w '0.2.1' 2>&1 >/dev/null
     if [[ "$?" -ne "0" ]]; then
       installZodiac
     else
@@ -81,7 +81,7 @@ function installCompose {
 
 function installZodiac {
   echo "Installing Zodiac..."
-  curl -L https://github.com/CenturyLinkLabs/zodiac/releases/download/0.2.0/zodiac-`uname -s`-`uname -m` > /usr/local/bin/zodiac
+  curl -L https://github.com/CenturyLinkLabs/zodiac/releases/download/0.2.1/zodiac-`uname -s`-`uname -m` > /usr/local/bin/zodiac
   chmod +x /usr/local/bin/zodiac
 }
 
