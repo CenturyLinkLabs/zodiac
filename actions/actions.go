@@ -44,6 +44,7 @@ type DeploymentManifest struct {
 }
 
 type Service struct {
+	OriginalImage   string
 	Name            string
 	ContainerConfig endpoint.ContainerConfig
 }
@@ -78,6 +79,7 @@ func startServices(services []Service, manifests DeploymentManifests, endpoint e
 			svc.ContainerConfig.Labels = make(map[string]string)
 		}
 		svc.ContainerConfig.Labels["zodiacManifest"] = string(manifestsBlob)
+		svc.ContainerConfig.Labels["com.centurylinklabs.zodiac.original-image"] = svc.OriginalImage
 
 		fmt.Printf("Creating %s\n", svc.Name)
 

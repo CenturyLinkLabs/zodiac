@@ -34,7 +34,7 @@ func TestDeploy_Success(t *testing.T) {
 			requests: []proxy.ContainerRequest{
 				{
 					Name:          "zodiac_foo_1",
-					CreateOptions: []byte(`{"Image": "zodiac"}`),
+					CreateOptions: []byte(`{"Image": "foo_image"}`),
 				},
 			},
 		}
@@ -66,8 +66,9 @@ func TestDeploy_Success(t *testing.T) {
 	mostRecentCall := startCalls[0]
 	assert.Equal(t, "zodiac_foo_1", mostRecentCall.Name)
 	assert.Equal(t, "xyz321", mostRecentCall.Config.Image)
-	assert.Equal(t, []string{"zodiac"}, resolveArgs)
+	assert.Equal(t, []string{"foo_image"}, resolveArgs)
 	assert.NotEmpty(t, mostRecentCall.Config.Labels["zodiacManifest"])
+	assert.Equal(t, "foo_image", mostRecentCall.Config.Labels["com.centurylinklabs.zodiac.original-image"])
 	assert.Equal(t, "Successfully deployed 1 container(s)", o.ToPrettyOutput())
 
 	dms := DeploymentManifests{}
