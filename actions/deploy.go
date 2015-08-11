@@ -40,6 +40,8 @@ func Deploy(options Options) (prettycli.Output, error) {
 			return nil, err
 		}
 
+		s.OriginalImage = s.ContainerConfig.Image
+
 		s.ContainerConfig.Image = imageId
 
 		dm.Services = append(dm.Services, s)
