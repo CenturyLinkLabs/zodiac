@@ -11,11 +11,14 @@ import (
 )
 
 const (
-	ProxyAddress  = "localhost:61908"
+	// ProxyAddress refers to the fake Proxy we redirect requests to.
+	ProxyAddress = "localhost:61908"
+	// BasicDateTime is our revolutionary time format.
 	BasicDateTime = "2006-01-02 15:04:05"
 )
 
 var (
+	// DefaultComposer is the composer to be used by this package. It must satisfy the Composer interface.
 	DefaultComposer composer.Composer
 	endpointFactory endpoint.EndpointFactory
 	proxyFactory    proxy.ProxyFactory
@@ -27,16 +30,23 @@ func init() {
 	proxyFactory = proxy.NewHTTPProxy
 }
 
+// Options represent the arguments for a Zodiaction
 type Options struct {
-	Args            []string
-	Flags           map[string]string
+	// Args supplied by the user.
+	Args []string
+	// Flags supplied by the user.
+	Flags map[string]string
+	// EndpointOptions have a comment.
 	EndpointOptions endpoint.EndpointOptions
 }
 
+// a Zodiaction is wraps all the magic.
 type Zodiaction func(Options) (prettycli.Output, error)
 
+// DeploymentManifests are a collection of DeploymentManifest.
 type DeploymentManifests []DeploymentManifest
 
+// a DeploymentManifest tells us what we need to know about our destiny.
 type DeploymentManifest struct {
 	Services   []Service
 	DeployedAt string
