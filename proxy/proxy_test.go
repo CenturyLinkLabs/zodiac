@@ -60,7 +60,7 @@ func TestCreate(t *testing.T) {
 	go proxy.Serve()
 	defer proxy.Stop()
 
-	resp, err := http.Post("http://localhost:61900/v1.18/containers/create?name=foo", "", strings.NewReader("bar"))
+	resp, err := http.Post("http://localhost:61900/v1.19/containers/create?name=foo", "", strings.NewReader("bar"))
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -81,7 +81,7 @@ func TestInspect(t *testing.T) {
 	go proxy.Serve()
 	defer proxy.Stop()
 
-	resp, err := http.Get("http://localhost:61901/v1.18/containers/foo/json")
+	resp, err := http.Get("http://localhost:61901/v1.19/containers/foo/json")
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -109,7 +109,7 @@ func TestStart(t *testing.T) {
 	go proxy.Serve()
 	defer proxy.Stop()
 
-	resp, err := http.Post("http://localhost:61902/v1.18/containers/foo/start", "", nil)
+	resp, err := http.Post("http://localhost:61902/v1.19/containers/foo/start", "", nil)
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
@@ -123,7 +123,7 @@ func TestListAll_NoContainersCreated(t *testing.T) {
 	go proxy.Serve()
 	defer proxy.Stop()
 
-	resp, err := http.Get("http://localhost:61903/v1.18/containers/json")
+	resp, err := http.Get("http://localhost:61903/v1.19/containers/json")
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -144,7 +144,7 @@ func TestListAll_WithContainersCreated(t *testing.T) {
 	go proxy.Serve()
 	defer proxy.Stop()
 
-	resp, err := http.Get("http://localhost:61904/v1.18/containers/json")
+	resp, err := http.Get("http://localhost:61904/v1.15/containers/json")
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
@@ -201,7 +201,7 @@ func TestListAll_WithNonMatchingFilteredRequest(t *testing.T) {
 
 	query := url.QueryEscape(`{"label": ["com.docker.compose.project=zodiac", "com.docker.compose.service=DOES_NOT_MATCH", "com.docker.compose.oneoff=False"]}`)
 
-	resp, err := http.Get(fmt.Sprintf("http://localhost:61906/v1.18/containers/json?filters=%s", query))
+	resp, err := http.Get(fmt.Sprintf("http://localhost:61906/v1.19/containers/json?filters=%s", query))
 
 	assert.NoError(t, err)
 	assert.Equal(t, http.StatusOK, resp.StatusCode)

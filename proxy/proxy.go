@@ -48,13 +48,13 @@ func NewHTTPProxy(listenAt string, endpoint endpoint.Endpoint, noBuild bool) Pro
 
 func (p *HTTPProxy) Serve() error {
 	r := mux.NewRouter()
-	r.Path("/v1.18/containers/create").Methods("POST").HandlerFunc(p.create)
-	r.Path("/v1.18/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
-	r.Path("/v1.18/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
-	r.Path("/v1.18/containers/json").Methods("GET").HandlerFunc(p.listAll)
-	r.Path("/v1.18/images/{id:.*}/json").Methods("GET").HandlerFunc(p.inspectImage)
-	r.Path("/v1.18/build").Methods("POST").HandlerFunc(p.build)
-	r.Path("/v1.18/images/create").Methods("POST").HandlerFunc(p.createImage)
+	r.Path("/{apiVersion:v1.1[5-9]}/containers/create").Methods("POST").HandlerFunc(p.create)
+	r.Path("/{apiVersion:v1.1[5-9]}/containers/{id}/json").Methods("GET").HandlerFunc(p.inspect)
+	r.Path("/{apiVersion:v1.1[5-9]}/containers/{id}/start").Methods("POST").HandlerFunc(p.start)
+	r.Path("/{apiVersion:v1.1[5-9]}/containers/json").Methods("GET").HandlerFunc(p.listAll)
+	r.Path("/{apiVersion:v1.1[5-9]}/images/{id:.*}/json").Methods("GET").HandlerFunc(p.inspectImage)
+	r.Path("/{apiVersion:v1.1[5-9]}/build").Methods("POST").HandlerFunc(p.build)
+	r.Path("/{apiVersion:v1.1[5-9]}/images/create").Methods("POST").HandlerFunc(p.createImage)
 	r.Path("/{rest:.*}").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Infof("Unhandled request to: %s\n\n", r.URL)
 	})
