@@ -92,7 +92,7 @@ Use the `zodiac help` command to see the options for passing in the necassary ce
 
 
 ### Install the local Zodiac client
-* Install [Docker Compose](http://docs.docker.com/compose/) **v1.3**. See: http://docs.docker.com/compose/
+* Install [Docker Compose](http://docs.docker.com/compose/) **v1.[2-4]**. See: http://docs.docker.com/compose/
 * Install the Zodiac Binary for your platform. See: https://github.com/CenturyLinkLabs/zodiac/releases/
 
 or if you're a risk taker:
