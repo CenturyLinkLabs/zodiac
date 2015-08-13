@@ -33,7 +33,7 @@ function checkForCompose {
   if [[ "$?" -ne "0" ]]; then
     alertNoCompose
   else
-    docker-compose -v | grep -w '1.3.[0-9]' 2>&1 >/dev/null
+    docker-compose -v | grep -w '1.[2-4].[0-9]' 2>&1 >/dev/null
     if [[ "$?" -ne "0" ]]; then
       alertNoCompose
     else
@@ -43,12 +43,12 @@ function checkForCompose {
 }
 
 function alertNoCompose {
-  echo "Please install Docker Compose version 1.3.*, then re-run this script";
+  echo "Please install Docker Compose version 1.4.*, then re-run this script";
   exit 1;
 }
 
 function promptForComposeInstall {
-  echo "Zodiac requires Docker Compose version 1.3.*.";
+  echo "Zodiac requires Docker Compose version 1.2 or higher.";
   read -p "Would you like us to install Docker Compose for you? [Y/n]" ic
   if [[ "$ic" == "" || "$ic" == "Y" || "$ic" == "y" ]]; then
     installCompose
@@ -75,7 +75,7 @@ function checkForZodiac {
 
 function installCompose {
   echo "Installing Docker Compose..."
-  curl -L https://github.com/docker/compose/releases/download/1.3.3/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
+  curl -L https://github.com/docker/compose/releases/download/1.4.0/docker-compose-`uname -s`-`uname -m` > /usr/local/bin/docker-compose
   chmod +x /usr/local/bin/docker-compose
 }
 
