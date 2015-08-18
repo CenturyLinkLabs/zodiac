@@ -81,7 +81,7 @@ function installCompose {
 
 function installZodiac {
   echo "Installing Zodiac..."
-  curl -L https://github.com/CenturyLinkLabs/zodiac/releases/download/0.2.1/zodiac-`uname -s`-`uname -m` > /usr/local/bin/zodiac
+  curl -L https://github.com/CenturyLinkLabs/zodiac/releases/download/0.3.0/zodiac-`uname -s`-`uname -m` > /usr/local/bin/zodiac
   chmod +x /usr/local/bin/zodiac
 }
 
