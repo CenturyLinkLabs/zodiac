@@ -55,6 +55,10 @@ ACTIVE ID      DEPLOY DATE             SERVICES        MESSAGE
        1       2015-06-30 00:40:27     zodiac_web_1
 ```
 
+## NOTE
+
+This repo is no longer being maintained. Users are welcome to fork it, but we make no warranty of its functionality.
+
 ## Installation
 
 ### Readying the remote environment
